@@ -26,6 +26,7 @@ func main() {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
+	router.Use(middleware.Heartbeat("/ping"))
 	router.Mount("/tasks", api.Tasks.Router())
 
 	port := ":8080"
