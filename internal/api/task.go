@@ -1,7 +1,9 @@
 package api
 
 import (
+	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/gatsu420/ngetes/internal/database"
 	"github.com/gatsu420/ngetes/internal/handlers"
@@ -11,8 +13,15 @@ import (
 	"github.com/uptrace/bun"
 )
 
+type ctxKey int
+
+const (
+	ctxTask ctxKey = iota
+)
+
 type TaskStore interface {
 	List(*database.TaskFilter) ([]models.Task, error)
+	Get(id int) (*models.Task, error)
 }
 
 type TaskResource struct {
@@ -43,8 +52,22 @@ func (rs *TaskResource) Router() *chi.Mux {
 	router := chi.NewRouter()
 
 	router.Get("/", rs.list)
+	router.Route("/{taskID}", func(router chi.Router) {
+		router.Use(rs.taskCtx)
+		router.Get("/", rs.get)
+	})
 
 	return router
+}
+
+func (rs *TaskResource) taskCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id, _ := strconv.Atoi(chi.URLParam(r, "taskID"))
+		acc, _ := rs.Store.Get(id)
+
+		ctx := context.WithValue(r.Context(), ctxTask, acc)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 func (rs *TaskResource) list(w http.ResponseWriter, r *http.Request) {
@@ -56,4 +79,9 @@ func (rs *TaskResource) list(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.Respond(w, r, handlers.NewTaskListResponse(&acc))
+}
+
+func (rs *TaskResource) get(w http.ResponseWriter, r *http.Request) {
+	acc := r.Context().Value(ctxTask).(*models.Task)
+	render.Respond(w, r, handlers.NewTaskResponse(acc))
 }

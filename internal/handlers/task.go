@@ -13,3 +13,13 @@ func NewTaskListResponse(t *[]models.Task) *taskListResponse {
 		Task: t,
 	}
 }
+
+type taskResponse struct {
+	Task *models.Task `json:"task"`
+}
+
+func NewTaskResponse(t *models.Task) *taskResponse {
+	return &taskResponse{
+		Task: t,
+	}
+}
