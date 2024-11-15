@@ -12,7 +12,7 @@ import (
 )
 
 type TaskStore interface {
-	List() ([]models.Task, error)
+	List(*database.TaskFilter) ([]models.Task, error)
 }
 
 type TaskResource struct {
@@ -48,7 +48,8 @@ func (rs *TaskResource) Router() *chi.Mux {
 }
 
 func (rs *TaskResource) list(w http.ResponseWriter, r *http.Request) {
-	acc, err := rs.Store.List()
+	f, _ := database.NewTaskFilter(r.URL.Query())
+	acc, err := rs.Store.List(f)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
