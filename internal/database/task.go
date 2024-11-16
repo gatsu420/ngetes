@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"net/url"
 	"strconv"
 
@@ -91,4 +92,23 @@ func (s *TaskStore) Get(id int) (*models.Task, error) {
 		Scan(context.Background())
 
 	return t, err
+}
+
+func (s *TaskStore) Create(t *models.Task) error {
+	ctx := context.Background()
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.NewInsert().
+		Model(t).
+		Exec(ctx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
 }
