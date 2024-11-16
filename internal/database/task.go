@@ -79,3 +79,16 @@ func (s *TaskStore) List(f *TaskFilter) ([]models.Task, error) {
 
 	return t, nil
 }
+
+func (s *TaskStore) Get(id int) (*models.Task, error) {
+	t := &models.Task{
+		ID: id,
+	}
+
+	err := s.db.NewSelect().
+		Model(t).
+		WherePK().
+		Scan(context.Background())
+
+	return t, err
+}
