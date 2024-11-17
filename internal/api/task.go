@@ -24,6 +24,7 @@ type TaskStore interface {
 	Get(id int) (*models.Task, error)
 	Create(*models.Task) error
 	Update(*models.Task) error
+	Delete(*models.Task) error
 }
 
 type TaskResource struct {
@@ -59,6 +60,7 @@ func (rs *TaskResource) Router() *chi.Mux {
 		router.Use(rs.taskCtx)
 		router.Get("/", rs.get)
 		router.Put("/", rs.update)
+		router.Delete("/", rs.delete)
 	})
 
 	return router
@@ -122,6 +124,18 @@ func (rs *TaskResource) update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 	}
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	render.Respond(w, r, handlers.NewTaskResponse(task))
+}
+
+func (rs *TaskResource) delete(w http.ResponseWriter, r *http.Request) {
+	task := r.Context().Value(ctxTask).(*models.Task)
+
+	err := rs.Store.Delete(task)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return

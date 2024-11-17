@@ -130,5 +130,25 @@ func (s *TaskStore) Update(t *models.Task) error {
 	}
 
 	tx.Commit()
-	return err
+	return nil
+}
+
+func (s *TaskStore) Delete(t *models.Task) error {
+	ctx := context.Background()
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.NewDelete().
+		Model(t).
+		WherePK().
+		Exec(ctx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
 }
