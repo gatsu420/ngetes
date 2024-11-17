@@ -130,7 +130,7 @@ func (s *TaskStore) Update(t *models.Task) error {
 	}
 
 	tx.Commit()
-	return err
+	return nil
 }
 
 func (s *TaskStore) Delete(t *models.Task) error {
