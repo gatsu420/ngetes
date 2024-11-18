@@ -109,6 +109,18 @@ func (s *TaskStore) Create(t *models.Task) error {
 		return err
 	}
 
+	event := &models.Event{
+		TaskID: t.ID,
+		Name:   "Create",
+	}
+	_, err = tx.NewInsert().
+		Model(event).
+		Exec(ctx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	tx.Commit()
 	return nil
 }
