@@ -82,15 +82,37 @@ func (s *TaskStore) List(f *TaskFilter) ([]models.Task, error) {
 }
 
 func (s *TaskStore) Get(id int) (*models.Task, error) {
+	ctx := context.Background()
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+
 	t := &models.Task{
 		ID: id,
 	}
-
-	err := s.db.NewSelect().
+	err = s.db.NewSelect().
 		Model(t).
 		WherePK().
-		Scan(context.Background())
+		Scan(ctx)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 
+	event := &models.Event{
+		TaskID: id,
+		Name:   "Get",
+	}
+	_, err = s.db.NewInsert().
+		Model(event).
+		Exec(ctx)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	tx.Commit()
 	return t, err
 }
 
