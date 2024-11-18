@@ -21,7 +21,7 @@ const (
 
 type TaskStore interface {
 	List(*database.TaskFilter) ([]models.Task, error)
-	Get(id int) (*models.Task, error)
+	Get(id int, sendEventFlag bool) (*models.Task, error)
 	Create(*models.Task) error
 	Update(*models.Task) error
 	Delete(*models.Task) error
@@ -69,7 +69,7 @@ func (rs *TaskResource) Router() *chi.Mux {
 func (rs *TaskResource) taskCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, _ := strconv.Atoi(chi.URLParam(r, "taskID"))
-		acc, _ := rs.Store.Get(id)
+		acc, _ := rs.Store.Get(id, false)
 
 		ctx := context.WithValue(r.Context(), ctxTask, acc)
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -123,10 +123,6 @@ func (rs *TaskResource) update(w http.ResponseWriter, r *http.Request) {
 	err = rs.Store.Update(task)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
-	}
-	if err != nil {
-		render.Render(w, r, ErrRender(err))
-		return
 	}
 
 	render.Respond(w, r, handlers.NewTaskResponse(task))

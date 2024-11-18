@@ -81,7 +81,7 @@ func (s *TaskStore) List(f *TaskFilter) ([]models.Task, error) {
 	return t, nil
 }
 
-func (s *TaskStore) Get(id int) (*models.Task, error) {
+func (s *TaskStore) Get(id int, sendEventFlag bool) (*models.Task, error) {
 	ctx := context.Background()
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -104,16 +104,18 @@ func (s *TaskStore) Get(id int) (*models.Task, error) {
 		TaskID: id,
 		Name:   "Get",
 	}
-	_, err = s.db.NewInsert().
-		Model(event).
-		Exec(ctx)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
+	if sendEventFlag {
+		_, err = s.db.NewInsert().
+			Model(event).
+			Exec(ctx)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
 	}
 
 	tx.Commit()
-	return t, err
+	return t, nil
 }
 
 func (s *TaskStore) Create(t *models.Task) error {
@@ -157,6 +159,18 @@ func (s *TaskStore) Update(t *models.Task) error {
 	_, err = s.db.NewUpdate().
 		Model(t).
 		WherePK().
+		Exec(ctx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	event := &models.Event{
+		TaskID: t.ID,
+		Name:   "Update",
+	}
+	_, err = s.db.NewInsert().
+		Model(event).
 		Exec(ctx)
 	if err != nil {
 		tx.Rollback()
