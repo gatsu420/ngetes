@@ -81,7 +81,7 @@ func (s *TaskStore) List(f *TaskFilter) ([]models.Task, error) {
 	return t, nil
 }
 
-func (s *TaskStore) Get(id int, sendEventFlag bool) (*models.Task, error) {
+func (s *TaskStore) Get(id int) (*models.Task, error) {
 	ctx := context.Background()
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -98,20 +98,6 @@ func (s *TaskStore) Get(id int, sendEventFlag bool) (*models.Task, error) {
 	if err != nil {
 		tx.Rollback()
 		return nil, err
-	}
-
-	event := &models.Event{
-		TaskID: id,
-		Name:   "Get",
-	}
-	if sendEventFlag {
-		_, err = s.db.NewInsert().
-			Model(event).
-			Exec(ctx)
-		if err != nil {
-			tx.Rollback()
-			return nil, err
-		}
 	}
 
 	tx.Commit()
@@ -191,6 +177,29 @@ func (s *TaskStore) Delete(t *models.Task) error {
 	_, err = s.db.NewDelete().
 		Model(t).
 		WherePK().
+		Exec(ctx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+func (s *TaskStore) CreateTracker(e *models.Event) error {
+	ctx := context.Background()
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	event := &models.Event{
+		TaskID: e.TaskID,
+		Name:   e.Name,
+	}
+	_, err = s.db.NewInsert().
+		Model(event).
 		Exec(ctx)
 	if err != nil {
 		tx.Rollback()
