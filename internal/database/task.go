@@ -139,18 +139,6 @@ func (s *TaskStore) Update(t *models.Task) error {
 		return err
 	}
 
-	event := &models.Event{
-		TaskID: t.ID,
-		Name:   "Update",
-	}
-	_, err = s.db.NewInsert().
-		Model(event).
-		Exec(ctx)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
 	tx.Commit()
 	return nil
 }

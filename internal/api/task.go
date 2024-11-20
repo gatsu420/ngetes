@@ -155,6 +155,17 @@ func (rs *TaskResource) update(w http.ResponseWriter, r *http.Request) {
 	err = rs.Store.Update(task)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	event := &models.Event{
+		TaskID: task.ID,
+		Name:   "Update",
+	}
+	err = rs.Store.CreateTracker(event)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
 	}
 
 	render.Respond(w, r, handlers.NewTaskResponse(task))
