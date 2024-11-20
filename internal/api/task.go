@@ -21,10 +21,12 @@ const (
 
 type TaskStore interface {
 	List(*database.TaskFilter) ([]models.Task, error)
-	Get(id int, sendEventFlag bool) (*models.Task, error)
-	Create(*models.Task) error
+	Get(id int) (*models.Task, error)
+	Create(*models.Task) (taskID int, err error)
 	Update(*models.Task) error
 	Delete(*models.Task) error
+
+	CreateTracker(*models.Event) error
 }
 
 type TaskResource struct {
@@ -68,17 +70,40 @@ func (rs *TaskResource) Router() *chi.Mux {
 
 func (rs *TaskResource) taskCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id, _ := strconv.Atoi(chi.URLParam(r, "taskID"))
-		acc, _ := rs.Store.Get(id, false)
+		id, err := strconv.Atoi(chi.URLParam(r, "taskID"))
+		if err != nil {
+			render.Render(w, r, ErrRender(err))
+			return
+		}
+		acc, err := rs.Store.Get(id)
+		if err != nil {
+			render.Render(w, r, ErrRender(err))
+			return
+		}
 
 		ctx := context.WithValue(r.Context(), ctxTask, acc)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func (rs *TaskResource) list(w http.ResponseWriter, r *http.Request) {
-	f, _ := database.NewTaskFilter(r.URL.Query())
+	f, err := database.NewTaskFilter(r.URL.Query())
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 	acc, err := rs.Store.List(f)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	event := &models.Event{
+		TaskID: 0,
+		Name:   "list",
+	}
+	err = rs.Store.CreateTracker(event)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -88,8 +113,19 @@ func (rs *TaskResource) list(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rs *TaskResource) get(w http.ResponseWriter, r *http.Request) {
-	acc := r.Context().Value(ctxTask).(*models.Task)
-	render.Respond(w, r, handlers.NewTaskResponse(acc))
+	task := r.Context().Value(ctxTask).(*models.Task)
+
+	event := &models.Event{
+		TaskID: task.ID,
+		Name:   "get",
+	}
+	err := rs.Store.CreateTracker(event)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	render.Respond(w, r, handlers.NewTaskResponse(task))
 }
 
 func (rs *TaskResource) create(w http.ResponseWriter, r *http.Request) {
@@ -100,7 +136,17 @@ func (rs *TaskResource) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = rs.Store.Create(task.Task)
+	taskID, err := rs.Store.Create(task.Task)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	event := &models.Event{
+		TaskID: taskID,
+		Name:   "create",
+	}
+	err = rs.Store.CreateTracker(event)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -123,6 +169,17 @@ func (rs *TaskResource) update(w http.ResponseWriter, r *http.Request) {
 	err = rs.Store.Update(task)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	event := &models.Event{
+		TaskID: task.ID,
+		Name:   "update",
+	}
+	err = rs.Store.CreateTracker(event)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
 	}
 
 	render.Respond(w, r, handlers.NewTaskResponse(task))
@@ -132,6 +189,16 @@ func (rs *TaskResource) delete(w http.ResponseWriter, r *http.Request) {
 	task := r.Context().Value(ctxTask).(*models.Task)
 
 	err := rs.Store.Delete(task)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	event := &models.Event{
+		TaskID: task.ID,
+		Name:   "delete",
+	}
+	err = rs.Store.CreateTracker(event)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return

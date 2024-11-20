@@ -81,7 +81,7 @@ func (s *TaskStore) List(f *TaskFilter) ([]models.Task, error) {
 	return t, nil
 }
 
-func (s *TaskStore) Get(id int, sendEventFlag bool) (*models.Task, error) {
+func (s *TaskStore) Get(id int) (*models.Task, error) {
 	ctx := context.Background()
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -100,29 +100,15 @@ func (s *TaskStore) Get(id int, sendEventFlag bool) (*models.Task, error) {
 		return nil, err
 	}
 
-	event := &models.Event{
-		TaskID: id,
-		Name:   "Get",
-	}
-	if sendEventFlag {
-		_, err = s.db.NewInsert().
-			Model(event).
-			Exec(ctx)
-		if err != nil {
-			tx.Rollback()
-			return nil, err
-		}
-	}
-
 	tx.Commit()
 	return t, nil
 }
 
-func (s *TaskStore) Create(t *models.Task) error {
+func (s *TaskStore) Create(t *models.Task) (taskID int, err error) {
 	ctx := context.Background()
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	_, err = tx.NewInsert().
@@ -130,23 +116,11 @@ func (s *TaskStore) Create(t *models.Task) error {
 		Exec(ctx)
 	if err != nil {
 		tx.Rollback()
-		return err
-	}
-
-	event := &models.Event{
-		TaskID: t.ID,
-		Name:   "Create",
-	}
-	_, err = tx.NewInsert().
-		Model(event).
-		Exec(ctx)
-	if err != nil {
-		tx.Rollback()
-		return err
+		return 0, err
 	}
 
 	tx.Commit()
-	return nil
+	return t.ID, nil
 }
 
 func (s *TaskStore) Update(t *models.Task) error {
@@ -159,18 +133,6 @@ func (s *TaskStore) Update(t *models.Task) error {
 	_, err = s.db.NewUpdate().
 		Model(t).
 		WherePK().
-		Exec(ctx)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	event := &models.Event{
-		TaskID: t.ID,
-		Name:   "Update",
-	}
-	_, err = s.db.NewInsert().
-		Model(event).
 		Exec(ctx)
 	if err != nil {
 		tx.Rollback()
@@ -191,6 +153,29 @@ func (s *TaskStore) Delete(t *models.Task) error {
 	_, err = s.db.NewDelete().
 		Model(t).
 		WherePK().
+		Exec(ctx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+func (s *TaskStore) CreateTracker(e *models.Event) error {
+	ctx := context.Background()
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	event := &models.Event{
+		TaskID: e.TaskID,
+		Name:   e.Name,
+	}
+	_, err = s.db.NewInsert().
+		Model(event).
 		Exec(ctx)
 	if err != nil {
 		tx.Rollback()
