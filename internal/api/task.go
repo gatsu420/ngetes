@@ -101,7 +101,7 @@ func (rs *TaskResource) list(w http.ResponseWriter, r *http.Request) {
 
 	event := &models.Event{
 		TaskID: 0,
-		Name:   "List",
+		Name:   "list",
 	}
 	err = rs.Store.CreateTracker(event)
 	if err != nil {
@@ -117,7 +117,7 @@ func (rs *TaskResource) get(w http.ResponseWriter, r *http.Request) {
 
 	event := &models.Event{
 		TaskID: task.ID,
-		Name:   "Get",
+		Name:   "get",
 	}
 	err := rs.Store.CreateTracker(event)
 	if err != nil {
@@ -144,7 +144,7 @@ func (rs *TaskResource) create(w http.ResponseWriter, r *http.Request) {
 
 	event := &models.Event{
 		TaskID: taskID,
-		Name:   "Create",
+		Name:   "create",
 	}
 	err = rs.Store.CreateTracker(event)
 	if err != nil {
@@ -174,7 +174,7 @@ func (rs *TaskResource) update(w http.ResponseWriter, r *http.Request) {
 
 	event := &models.Event{
 		TaskID: task.ID,
-		Name:   "Update",
+		Name:   "update",
 	}
 	err = rs.Store.CreateTracker(event)
 	if err != nil {
@@ -196,7 +196,7 @@ func (rs *TaskResource) delete(w http.ResponseWriter, r *http.Request) {
 
 	event := &models.Event{
 		TaskID: task.ID,
-		Name:   "Delete",
+		Name:   "delete",
 	}
 	err = rs.Store.CreateTracker(event)
 	if err != nil {
