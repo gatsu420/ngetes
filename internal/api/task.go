@@ -194,5 +194,15 @@ func (rs *TaskResource) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	event := &models.Event{
+		TaskID: task.ID,
+		Name:   "Delete",
+	}
+	err = rs.Store.CreateTracker(event)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
 	render.Respond(w, r, handlers.NewTaskResponse(task))
 }
