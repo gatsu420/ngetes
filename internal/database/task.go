@@ -104,11 +104,11 @@ func (s *TaskStore) Get(id int) (*models.Task, error) {
 	return t, nil
 }
 
-func (s *TaskStore) Create(t *models.Task) error {
+func (s *TaskStore) Create(t *models.Task) (taskID int, err error) {
 	ctx := context.Background()
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	_, err = tx.NewInsert().
@@ -116,23 +116,11 @@ func (s *TaskStore) Create(t *models.Task) error {
 		Exec(ctx)
 	if err != nil {
 		tx.Rollback()
-		return err
-	}
-
-	event := &models.Event{
-		TaskID: t.ID,
-		Name:   "Create",
-	}
-	_, err = tx.NewInsert().
-		Model(event).
-		Exec(ctx)
-	if err != nil {
-		tx.Rollback()
-		return err
+		return 0, err
 	}
 
 	tx.Commit()
-	return nil
+	return t.ID, nil
 }
 
 func (s *TaskStore) Update(t *models.Task) error {

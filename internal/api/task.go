@@ -22,7 +22,7 @@ const (
 type TaskStore interface {
 	List(*database.TaskFilter) ([]models.Task, error)
 	Get(id int) (*models.Task, error)
-	Create(*models.Task) error
+	Create(*models.Task) (taskID int, err error)
 	Update(*models.Task) error
 	Delete(*models.Task) error
 
@@ -122,7 +122,17 @@ func (rs *TaskResource) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = rs.Store.Create(task.Task)
+	taskID, err := rs.Store.Create(task.Task)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	event := &models.Event{
+		TaskID: taskID,
+		Name:   "Create",
+	}
+	err = rs.Store.CreateTracker(event)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
