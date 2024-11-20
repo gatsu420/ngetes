@@ -88,8 +88,22 @@ func (rs *TaskResource) taskCtx(next http.Handler) http.Handler {
 }
 
 func (rs *TaskResource) list(w http.ResponseWriter, r *http.Request) {
-	f, _ := database.NewTaskFilter(r.URL.Query())
+	f, err := database.NewTaskFilter(r.URL.Query())
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 	acc, err := rs.Store.List(f)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	event := &models.Event{
+		TaskID: 0,
+		Name:   "List",
+	}
+	err = rs.Store.CreateTracker(event)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
