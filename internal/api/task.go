@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gatsu420/ngetes/internal/database"
 	"github.com/gatsu420/ngetes/internal/handlers"
@@ -157,6 +158,8 @@ func (rs *TaskResource) create(w http.ResponseWriter, r *http.Request) {
 
 func (rs *TaskResource) update(w http.ResponseWriter, r *http.Request) {
 	task := r.Context().Value(ctxTask).(*models.Task)
+	task.UpdatedAt = time.Now()
+
 	data := &handlers.TaskRequest{
 		Task: task,
 	}
