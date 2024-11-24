@@ -1,37 +1,8 @@
 package api
 
-import (
-	"github.com/gatsu420/ngetes/database"
-	"github.com/gatsu420/ngetes/handlers"
-	"github.com/go-chi/chi/v5"
-	"github.com/uptrace/bun"
-)
+import "github.com/go-chi/chi/v5"
 
-type TaskResource struct {
-	Handlers *handlers.TaskHandlers
-}
-
-func NewTaskResource(s handlers.TaskStore) *TaskResource {
-	return &TaskResource{
-		Handlers: handlers.NewTaskHandler(s),
-	}
-}
-
-type API struct {
-	Tasks *TaskResource
-}
-
-func NewAPI(db *bun.DB) (*API, error) {
-	taskStore := database.NewTaskStore(db)
-	tasks := NewTaskResource(taskStore)
-	api := &API{
-		Tasks: tasks,
-	}
-
-	return api, nil
-}
-
-func (rs *TaskResource) Router() *chi.Mux {
+func (rs *taskResource) Router() *chi.Mux {
 	router := chi.NewRouter()
 
 	router.Get("/", rs.Handlers.ListHandler)

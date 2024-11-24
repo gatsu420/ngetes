@@ -14,11 +14,9 @@ import (
 
 type ctxKey int
 
-const (
-	ctxTask ctxKey = iota
-)
+const ctxTask ctxKey = iota
 
-type TaskStore interface {
+type TaskOperations interface {
 	List(*database.TaskFilter) ([]models.Task, error)
 	Get(id int) (*models.Task, error)
 	Create(*models.Task) (taskID int, err error)
@@ -29,12 +27,12 @@ type TaskStore interface {
 }
 
 type TaskHandlers struct {
-	Store TaskStore
+	Operations TaskOperations
 }
 
-func NewTaskHandler(s TaskStore) *TaskHandlers {
+func NewTaskHandler(operations TaskOperations) *TaskHandlers {
 	return &TaskHandlers{
-		Store: s,
+		Operations: operations,
 	}
 }
 
@@ -74,7 +72,7 @@ func (rs *TaskHandlers) TaskCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		task, err := rs.Store.Get(id)
+		task, err := rs.Operations.Get(id)
 		if err != nil {
 			render.Render(w, r, ErrRender(err))
 			return
@@ -92,7 +90,7 @@ func (rs *TaskHandlers) ListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := rs.Store.List(filters)
+	task, err := rs.Operations.List(filters)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -102,7 +100,7 @@ func (rs *TaskHandlers) ListHandler(w http.ResponseWriter, r *http.Request) {
 		TaskID: 0,
 		Name:   "list",
 	}
-	err = rs.Store.CreateTracker(event)
+	err = rs.Operations.CreateTracker(event)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -118,7 +116,7 @@ func (rs *TaskHandlers) GetHandler(w http.ResponseWriter, r *http.Request) {
 		TaskID: task.ID,
 		Name:   "get",
 	}
-	err := rs.Store.CreateTracker(event)
+	err := rs.Operations.CreateTracker(event)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -135,7 +133,7 @@ func (rs *TaskHandlers) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	taskID, err := rs.Store.Create(task.Task)
+	taskID, err := rs.Operations.Create(task.Task)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -145,7 +143,7 @@ func (rs *TaskHandlers) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		TaskID: taskID,
 		Name:   "create",
 	}
-	err = rs.Store.CreateTracker(event)
+	err = rs.Operations.CreateTracker(event)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -167,7 +165,7 @@ func (rs *TaskHandlers) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = rs.Store.Update(task)
+	err = rs.Operations.Update(task)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -177,7 +175,7 @@ func (rs *TaskHandlers) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		TaskID: task.ID,
 		Name:   "update",
 	}
-	err = rs.Store.CreateTracker(event)
+	err = rs.Operations.CreateTracker(event)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -189,7 +187,7 @@ func (rs *TaskHandlers) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 func (rs *TaskHandlers) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	task := r.Context().Value(ctxTask).(*models.Task)
 
-	err := rs.Store.Delete(task)
+	err := rs.Operations.Delete(task)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -199,7 +197,7 @@ func (rs *TaskHandlers) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		TaskID: task.ID,
 		Name:   "delete",
 	}
-	err = rs.Store.CreateTracker(event)
+	err = rs.Operations.CreateTracker(event)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return

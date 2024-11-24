@@ -34,7 +34,6 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Heartbeat("/ping"))
 
-	// TODO: Refactor handlers
 	router.Post("/login", handlers.LoginHandler)
 	router.Group(func(r chi.Router) {
 		r.Use(jwtauth.Verifier(tokenAuth))
