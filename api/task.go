@@ -1,8 +1,8 @@
 package api
 
 import (
-	"github.com/gatsu420/ngetes/internal/database"
-	"github.com/gatsu420/ngetes/internal/handlers"
+	"github.com/gatsu420/ngetes/database"
+	"github.com/gatsu420/ngetes/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/uptrace/bun"
 )

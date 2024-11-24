@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gatsu420/ngetes/internal/auth"
+	"github.com/gatsu420/ngetes/auth"
 	"github.com/go-chi/render"
 )
 

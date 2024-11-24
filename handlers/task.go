@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gatsu420/ngetes/internal/database"
+	"github.com/gatsu420/ngetes/database"
 	"github.com/gatsu420/ngetes/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
