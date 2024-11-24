@@ -1,21 +1,34 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/gatsu420/ngetes/internal/auth"
+	"github.com/go-chi/render"
 )
+
+type tokenResponse struct {
+	Token string `json:"access_token"`
+}
+
+func newTokenResponse(token string) *tokenResponse {
+	return &tokenResponse{
+		Token: token,
+	}
+}
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	auth := auth.NewAuth()
 
-	_, token, _ := auth.Encode(map[string]interface{}{
+	_, token, err := auth.Encode(map[string]interface{}{
 		"user_id": "ngetes",
-		"exp":     time.Now().Add(20 * time.Second).Unix(),
+		"exp":     time.Now().Add(1120 * time.Second).Unix(),
 	})
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	render.Respond(w, r, newTokenResponse(token))
 }
