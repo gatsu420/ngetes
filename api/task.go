@@ -7,22 +7,6 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// type ctxKey int
-
-// const (
-// 	ctxTask ctxKey = iota
-// )
-
-// type TaskStore interface {
-// 	List(*database.TaskFilter) ([]models.Task, error)
-// 	Get(id int) (*models.Task, error)
-// 	Create(*models.Task) (taskID int, err error)
-// 	Update(*models.Task) error
-// 	Delete(*models.Task) error
-
-// 	CreateTracker(*models.Event) error
-// }
-
 type TaskResource struct {
 	Handlers *handlers.TaskHandlers
 }
