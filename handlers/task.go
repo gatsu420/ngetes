@@ -1,4 +1,4 @@
-package api
+package handlers
 
 import (
 	"context"
@@ -6,12 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gatsu420/ngetes/internal/database"
-	"github.com/gatsu420/ngetes/internal/handlers"
+	"github.com/gatsu420/ngetes/database"
 	"github.com/gatsu420/ngetes/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/uptrace/bun"
 )
 
 type ctxKey int
@@ -30,71 +28,71 @@ type TaskStore interface {
 	CreateTracker(*models.Event) error
 }
 
-type TaskResource struct {
+type TaskHandlers struct {
 	Store TaskStore
 }
 
-func NewTaskResource(s TaskStore) *TaskResource {
-	return &TaskResource{
+func NewTaskHandler(s TaskStore) *TaskHandlers {
+	return &TaskHandlers{
 		Store: s,
 	}
 }
 
-type API struct {
-	Tasks *TaskResource
+type taskListResponse struct {
+	Task *[]models.Task `json:"tasks"`
 }
 
-func NewAPI(db *bun.DB) (*API, error) {
-	taskStore := database.NewTaskStore(db)
-	tasks := NewTaskResource(taskStore)
-	api := &API{
-		Tasks: tasks,
+func NewTaskListResponse(t *[]models.Task) *taskListResponse {
+	return &taskListResponse{
+		Task: t,
 	}
-
-	return api, nil
 }
 
-func (rs *TaskResource) Router() *chi.Mux {
-	router := chi.NewRouter()
-
-	router.Get("/", rs.list)
-	router.Post("/", rs.create)
-	router.Route("/{taskID}", func(router chi.Router) {
-		router.Use(rs.taskCtx)
-		router.Get("/", rs.get)
-		router.Put("/", rs.update)
-		router.Delete("/", rs.delete)
-	})
-
-	return router
+type taskResponse struct {
+	Task *models.Task `json:"task"`
 }
 
-func (rs *TaskResource) taskCtx(next http.Handler) http.Handler {
+func NewTaskResponse(t *models.Task) *taskResponse {
+	return &taskResponse{
+		Task: t,
+	}
+}
+
+type TaskRequest struct {
+	Task *models.Task `json:"task"`
+}
+
+func (tr *TaskRequest) Bind(r *http.Request) error {
+	return nil
+}
+
+func (rs *TaskHandlers) TaskCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(chi.URLParam(r, "taskID"))
 		if err != nil {
 			render.Render(w, r, ErrRender(err))
 			return
 		}
-		acc, err := rs.Store.Get(id)
+
+		task, err := rs.Store.Get(id)
 		if err != nil {
 			render.Render(w, r, ErrRender(err))
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), ctxTask, acc)
-
+		ctx := context.WithValue(r.Context(), ctxTask, task)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func (rs *TaskResource) list(w http.ResponseWriter, r *http.Request) {
-	f, err := database.NewTaskFilter(r.URL.Query())
+func (rs *TaskHandlers) ListHandler(w http.ResponseWriter, r *http.Request) {
+	filters, err := database.NewTaskFilter(r.URL.Query())
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
 	}
-	acc, err := rs.Store.List(f)
+
+	task, err := rs.Store.List(filters)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -110,10 +108,10 @@ func (rs *TaskResource) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, handlers.NewTaskListResponse(&acc))
+	render.Respond(w, r, NewTaskListResponse(&task))
 }
 
-func (rs *TaskResource) get(w http.ResponseWriter, r *http.Request) {
+func (rs *TaskHandlers) GetHandler(w http.ResponseWriter, r *http.Request) {
 	task := r.Context().Value(ctxTask).(*models.Task)
 
 	event := &models.Event{
@@ -126,11 +124,11 @@ func (rs *TaskResource) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, handlers.NewTaskResponse(task))
+	render.Respond(w, r, NewTaskResponse(task))
 }
 
-func (rs *TaskResource) create(w http.ResponseWriter, r *http.Request) {
-	task := &handlers.TaskRequest{}
+func (rs *TaskHandlers) CreateHandler(w http.ResponseWriter, r *http.Request) {
+	task := &TaskRequest{}
 	err := render.Bind(r, task)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
@@ -153,14 +151,14 @@ func (rs *TaskResource) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, handlers.NewTaskResponse(task.Task))
+	render.Respond(w, r, NewTaskResponse(task.Task))
 }
 
-func (rs *TaskResource) update(w http.ResponseWriter, r *http.Request) {
+func (rs *TaskHandlers) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	task := r.Context().Value(ctxTask).(*models.Task)
 	task.UpdatedAt = time.Now()
 
-	data := &handlers.TaskRequest{
+	data := &TaskRequest{
 		Task: task,
 	}
 	err := render.Bind(r, data)
@@ -185,10 +183,10 @@ func (rs *TaskResource) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, handlers.NewTaskResponse(task))
+	render.Respond(w, r, NewTaskResponse(task))
 }
 
-func (rs *TaskResource) delete(w http.ResponseWriter, r *http.Request) {
+func (rs *TaskHandlers) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	task := r.Context().Value(ctxTask).(*models.Task)
 
 	err := rs.Store.Delete(task)
@@ -207,5 +205,5 @@ func (rs *TaskResource) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, handlers.NewTaskResponse(task))
+	render.Respond(w, r, NewTaskResponse(task))
 }
