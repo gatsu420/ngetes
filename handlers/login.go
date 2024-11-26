@@ -35,7 +35,7 @@ func newAuthResponse(token string) *authResponse {
 func (hd *LoginHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	jwtAuth, err := hd.Operations.CreateJWTAuth()
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
@@ -44,7 +44,7 @@ func (hd *LoginHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		"exp":     time.Now().Add(100 * time.Second).Unix(),
 	})
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 

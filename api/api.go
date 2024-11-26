@@ -9,22 +9,22 @@ import (
 )
 
 type taskResource struct {
-	Handlers *handlers.TaskHandlers
+	handlers *handlers.TaskHandlers
 }
 
-func NewTaskResource(operations handlers.TaskOperations) *taskResource {
+func newTaskResource(operations handlers.TaskOperations) *taskResource {
 	return &taskResource{
-		Handlers: handlers.NewTaskHandlers(operations),
+		handlers: handlers.NewTaskHandlers(operations),
 	}
 }
 
 type loginResource struct {
-	Handlers *handlers.LoginHandlers
+	handlers *handlers.LoginHandlers
 }
 
-func NewLoginResource(operations handlers.LoginOperations) *loginResource {
+func newLoginResource(operations handlers.LoginOperations) *loginResource {
 	return &loginResource{
-		Handlers: handlers.NewLoginHandlers(operations),
+		handlers: handlers.NewLoginHandlers(operations),
 	}
 }
 
@@ -37,8 +37,8 @@ func NewAPI(db *bun.DB, jwtAuth *jwtauth.JWTAuth) (*API, error) {
 	taskStore := database.NewTaskStore(db)
 	authStore := auth.NewAuthStore(jwtAuth)
 
-	tasks := NewTaskResource(taskStore)
-	auth := NewLoginResource(authStore)
+	tasks := newTaskResource(taskStore)
+	auth := newLoginResource(authStore)
 
 	api := &API{
 		Tasks: tasks,

@@ -43,7 +43,7 @@ type taskListResponse struct {
 	Task *[]models.Task `json:"tasks"`
 }
 
-func NewTaskListResponse(t *[]models.Task) *taskListResponse {
+func newTaskListResponse(t *[]models.Task) *taskListResponse {
 	return &taskListResponse{
 		Task: t,
 	}
@@ -53,7 +53,7 @@ type taskResponse struct {
 	Task *models.Task `json:"task"`
 }
 
-func NewTaskResponse(t *models.Task) *taskResponse {
+func newTaskResponse(t *models.Task) *taskResponse {
 	return &taskResponse{
 		Task: t,
 	}
@@ -63,7 +63,7 @@ type deletedTaskResponse struct {
 	Status string `json:"status"`
 }
 
-func NewDeletedTaskResponse(t *models.Task) *deletedTaskResponse {
+func newDeletedTaskResponse(t *models.Task) *deletedTaskResponse {
 	return &deletedTaskResponse{
 		Status: fmt.Sprintf("deleted task ID %v", t.ID),
 	}
@@ -73,17 +73,17 @@ type claimResponse struct {
 	Claims map[string]interface{} `json:"claims"`
 }
 
-func NewClaimResponse(claims map[string]interface{}) *claimResponse {
+func newClaimResponse(claims map[string]interface{}) *claimResponse {
 	return &claimResponse{
 		Claims: claims,
 	}
 }
 
-type TaskRequest struct {
+type taskRequest struct {
 	Task *models.Task `json:"task"`
 }
 
-func (tr *TaskRequest) Bind(r *http.Request) error {
+func (tr *taskRequest) Bind(r *http.Request) error {
 	return nil
 }
 
@@ -91,13 +91,13 @@ func (rs *TaskHandlers) TaskCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(chi.URLParam(r, "taskID"))
 		if err != nil {
-			render.Render(w, r, ErrRender(err))
+			render.Render(w, r, errRender(err))
 			return
 		}
 
 		task, err := rs.Operations.Get(id)
 		if err != nil {
-			render.Render(w, r, ErrRender(err))
+			render.Render(w, r, errRender(err))
 			return
 		}
 
@@ -109,13 +109,13 @@ func (rs *TaskHandlers) TaskCtx(next http.Handler) http.Handler {
 func (rs *TaskHandlers) ListHandler(w http.ResponseWriter, r *http.Request) {
 	filters, err := database.NewTaskFilter(r.URL.Query())
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
 	task, err := rs.Operations.List(filters)
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
@@ -125,11 +125,11 @@ func (rs *TaskHandlers) ListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err = rs.Operations.CreateTracker(event)
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
-	render.Respond(w, r, NewTaskListResponse(&task))
+	render.Respond(w, r, newTaskListResponse(&task))
 }
 
 func (rs *TaskHandlers) GetHandler(w http.ResponseWriter, r *http.Request) {
@@ -141,24 +141,24 @@ func (rs *TaskHandlers) GetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err := rs.Operations.CreateTracker(event)
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
-	render.Respond(w, r, NewTaskResponse(task))
+	render.Respond(w, r, newTaskResponse(task))
 }
 
 func (rs *TaskHandlers) CreateHandler(w http.ResponseWriter, r *http.Request) {
-	task := &TaskRequest{}
+	task := &taskRequest{}
 	err := render.Bind(r, task)
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
 	taskID, err := rs.Operations.Create(task.Task)
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
@@ -168,29 +168,29 @@ func (rs *TaskHandlers) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err = rs.Operations.CreateTracker(event)
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
-	render.Respond(w, r, NewTaskResponse(task.Task))
+	render.Respond(w, r, newTaskResponse(task.Task))
 }
 
 func (rs *TaskHandlers) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	task := r.Context().Value(ctxTask).(*models.Task)
 	task.UpdatedAt = time.Now()
 
-	data := &TaskRequest{
+	data := &taskRequest{
 		Task: task,
 	}
 	err := render.Bind(r, data)
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
 	err = rs.Operations.Update(task)
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
@@ -200,11 +200,11 @@ func (rs *TaskHandlers) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err = rs.Operations.CreateTracker(event)
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
-	render.Respond(w, r, NewTaskResponse(task))
+	render.Respond(w, r, newTaskResponse(task))
 }
 
 func (rs *TaskHandlers) DeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -212,7 +212,7 @@ func (rs *TaskHandlers) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := rs.Operations.Delete(task)
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
@@ -222,19 +222,19 @@ func (rs *TaskHandlers) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err = rs.Operations.CreateTracker(event)
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
-	render.Respond(w, r, NewDeletedTaskResponse(task))
+	render.Respond(w, r, newDeletedTaskResponse(task))
 }
 
 func (rs *TaskHandlers) GetClaimHandler(w http.ResponseWriter, r *http.Request) {
 	claims, err := rs.Operations.GetClaim(r)
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
+		render.Render(w, r, errRender(err))
 		return
 	}
 
-	render.Respond(w, r, NewClaimResponse(claims))
+	render.Respond(w, r, newClaimResponse(claims))
 }
