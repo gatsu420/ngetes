@@ -5,16 +5,16 @@ import "github.com/go-chi/chi/v5"
 func (rs *taskResource) Router() *chi.Mux {
 	router := chi.NewRouter()
 
-	router.Get("/", rs.Handlers.ListHandler)
-	router.Post("/", rs.Handlers.CreateHandler)
+	router.Get("/", rs.handlers.ListHandler)
+	router.Post("/", rs.handlers.CreateHandler)
 	router.Route("/{taskID}", func(router chi.Router) {
-		router.Use(rs.Handlers.TaskCtx)
-		router.Get("/", rs.Handlers.GetHandler)
-		router.Put("/", rs.Handlers.UpdateHandler)
-		router.Delete("/", rs.Handlers.DeleteHandler)
+		router.Use(rs.handlers.TaskCtx)
+		router.Get("/", rs.handlers.GetHandler)
+		router.Put("/", rs.handlers.UpdateHandler)
+		router.Delete("/", rs.handlers.DeleteHandler)
 	})
 
-	router.Get("/claims", rs.Handlers.GetClaimHandler)
+	router.Get("/claims", rs.handlers.GetClaimHandler)
 
 	return router
 }
