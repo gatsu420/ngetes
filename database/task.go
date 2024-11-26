@@ -3,10 +3,12 @@ package database
 import (
 	"context"
 	"database/sql"
+	"net/http"
 	"net/url"
 	"strconv"
 
 	"github.com/gatsu420/ngetes/models"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/uptrace/bun"
 )
 
@@ -174,4 +176,13 @@ func (s *taskStore) CreateTracker(e *models.Event) error {
 
 	tx.Commit()
 	return nil
+}
+
+func (s *taskStore) GetClaim(r *http.Request) (map[string]interface{}, error) {
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		return nil, err
+	}
+
+	return claims, nil
 }
