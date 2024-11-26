@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -55,6 +56,16 @@ type taskResponse struct {
 func NewTaskResponse(t *models.Task) *taskResponse {
 	return &taskResponse{
 		Task: t,
+	}
+}
+
+type deletedTaskResponse struct {
+	Status string `json:"status"`
+}
+
+func NewDeletedTaskResponse(t *models.Task) *deletedTaskResponse {
+	return &deletedTaskResponse{
+		Status: fmt.Sprintf("deleted task ID %v", t.ID),
 	}
 }
 
@@ -215,7 +226,7 @@ func (rs *TaskHandlers) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, NewTaskResponse(task))
+	render.Respond(w, r, NewDeletedTaskResponse(task))
 }
 
 func (rs *TaskHandlers) GetClaimHandler(w http.ResponseWriter, r *http.Request) {
