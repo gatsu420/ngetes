@@ -24,6 +24,8 @@ type TaskOperations interface {
 	Delete(*models.Task) error
 
 	CreateTracker(*models.Event) error
+
+	GetClaim(r *http.Request) (map[string]interface{}, error)
 }
 
 type TaskHandlers struct {
@@ -53,6 +55,16 @@ type taskResponse struct {
 func NewTaskResponse(t *models.Task) *taskResponse {
 	return &taskResponse{
 		Task: t,
+	}
+}
+
+type claimResponse struct {
+	Claims map[string]interface{} `json:"claims"`
+}
+
+func NewClaimResponse(claims map[string]interface{}) *claimResponse {
+	return &claimResponse{
+		Claims: claims,
 	}
 }
 
@@ -204,4 +216,14 @@ func (rs *TaskHandlers) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.Respond(w, r, NewTaskResponse(task))
+}
+
+func (rs *TaskHandlers) GetClaimHandler(w http.ResponseWriter, r *http.Request) {
+	claims, err := rs.Operations.GetClaim(r)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	render.Respond(w, r, NewClaimResponse(claims))
 }

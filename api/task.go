@@ -14,5 +14,7 @@ func (rs *taskResource) Router() *chi.Mux {
 		router.Delete("/", rs.Handlers.DeleteHandler)
 	})
 
+	router.Get("/claims", rs.Handlers.GetClaimHandler)
+
 	return router
 }
