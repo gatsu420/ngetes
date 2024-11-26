@@ -1,12 +1,13 @@
 package auth
 
-import (
-	"github.com/go-chi/jwtauth/v5"
-	"github.com/spf13/viper"
-)
+import "github.com/go-chi/jwtauth/v5"
 
-func NewAuth() *jwtauth.JWTAuth {
-	auth := jwtauth.New("HS256", []byte(viper.GetString("token_secret_key")), nil)
+type authStore struct {
+	JWTAuth *jwtauth.JWTAuth
+}
 
-	return auth
+func NewAuthStore(jwtauth *jwtauth.JWTAuth) *authStore {
+	return &authStore{
+		JWTAuth: jwtauth,
+	}
 }

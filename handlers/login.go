@@ -4,31 +4,49 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gatsu420/ngetes/auth"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-chi/render"
 )
 
-type tokenResponse struct {
+type LoginOperations interface {
+	CreateJWTAuth() (*jwtauth.JWTAuth, error)
+}
+
+type LoginHandlers struct {
+	Operations LoginOperations
+}
+
+func NewLoginHandler(operations LoginOperations) *LoginHandlers {
+	return &LoginHandlers{
+		Operations: operations,
+	}
+}
+
+type authResponse struct {
 	Token string `json:"access_token"`
 }
 
-func newTokenResponse(token string) *tokenResponse {
-	return &tokenResponse{
+func newAuthResponse(token string) *authResponse {
+	return &authResponse{
 		Token: token,
 	}
 }
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	auth := auth.NewAuth()
+func (hd *LoginHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	jwtAuth, err := hd.Operations.CreateJWTAuth()
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-	_, token, err := auth.Encode(map[string]interface{}{
-		"user_id": "ngetes",
-		"exp":     time.Now().Add(1120 * time.Second).Unix(),
+	_, token, err := jwtAuth.Encode(map[string]interface{}{
+		"user_id": "ngetes doankk",
+		"exp":     time.Now().Add(100 * time.Second).Unix(),
 	})
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
 	}
 
-	render.Respond(w, r, newTokenResponse(token))
+	render.Respond(w, r, newAuthResponse(token))
 }
