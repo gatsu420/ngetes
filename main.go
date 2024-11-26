@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -41,14 +40,6 @@ func main() {
 		r.Use(jwtauth.Verifier(auth))
 		r.Use(jwtauth.Authenticator(auth))
 		r.Mount("/tasks", api.Tasks.Router())
-		r.Get("/hello", func(w http.ResponseWriter, r *http.Request) {
-			_, claims, _ := jwtauth.FromContext(r.Context())
-
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
-				"claims": claims,
-			})
-		})
 	})
 
 	port := ":8080"
