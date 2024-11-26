@@ -10,16 +10,6 @@ import (
 	"github.com/uptrace/bun"
 )
 
-type TaskStore struct {
-	db *bun.DB
-}
-
-func NewTaskStore(db *bun.DB) *TaskStore {
-	return &TaskStore{
-		db: db,
-	}
-}
-
 type TaskFilter struct {
 	Limit  int
 	Offset int
@@ -67,10 +57,10 @@ func (f *TaskFilter) Apply(q *bun.SelectQuery) *bun.SelectQuery {
 	return q
 }
 
-func (s *TaskStore) List(f *TaskFilter) ([]models.Task, error) {
+func (s *taskStore) List(f *TaskFilter) ([]models.Task, error) {
 	t := []models.Task{}
 
-	err := s.db.NewSelect().
+	err := s.DB.NewSelect().
 		Model(&t).
 		Apply(f.Apply).
 		Scan(context.Background())
@@ -81,9 +71,9 @@ func (s *TaskStore) List(f *TaskFilter) ([]models.Task, error) {
 	return t, nil
 }
 
-func (s *TaskStore) Get(id int) (*models.Task, error) {
+func (s *taskStore) Get(id int) (*models.Task, error) {
 	ctx := context.Background()
-	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +81,7 @@ func (s *TaskStore) Get(id int) (*models.Task, error) {
 	t := &models.Task{
 		ID: id,
 	}
-	err = s.db.NewSelect().
+	err = s.DB.NewSelect().
 		Model(t).
 		WherePK().
 		Scan(ctx)
@@ -104,9 +94,9 @@ func (s *TaskStore) Get(id int) (*models.Task, error) {
 	return t, nil
 }
 
-func (s *TaskStore) Create(t *models.Task) (taskID int, err error) {
+func (s *taskStore) Create(t *models.Task) (taskID int, err error) {
 	ctx := context.Background()
-	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return 0, err
 	}
@@ -123,14 +113,14 @@ func (s *TaskStore) Create(t *models.Task) (taskID int, err error) {
 	return t.ID, nil
 }
 
-func (s *TaskStore) Update(t *models.Task) error {
+func (s *taskStore) Update(t *models.Task) error {
 	ctx := context.Background()
-	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return err
 	}
 
-	_, err = s.db.NewUpdate().
+	_, err = s.DB.NewUpdate().
 		Model(t).
 		WherePK().
 		Exec(ctx)
@@ -143,14 +133,14 @@ func (s *TaskStore) Update(t *models.Task) error {
 	return nil
 }
 
-func (s *TaskStore) Delete(t *models.Task) error {
+func (s *taskStore) Delete(t *models.Task) error {
 	ctx := context.Background()
-	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return err
 	}
 
-	_, err = s.db.NewDelete().
+	_, err = s.DB.NewDelete().
 		Model(t).
 		WherePK().
 		Exec(ctx)
@@ -163,9 +153,9 @@ func (s *TaskStore) Delete(t *models.Task) error {
 	return nil
 }
 
-func (s *TaskStore) CreateTracker(e *models.Event) error {
+func (s *taskStore) CreateTracker(e *models.Event) error {
 	ctx := context.Background()
-	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return err
 	}
@@ -174,7 +164,7 @@ func (s *TaskStore) CreateTracker(e *models.Event) error {
 		TaskID: e.TaskID,
 		Name:   e.Name,
 	}
-	_, err = s.db.NewInsert().
+	_, err = s.DB.NewInsert().
 		Model(event).
 		Exec(ctx)
 	if err != nil {

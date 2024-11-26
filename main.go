@@ -9,7 +9,6 @@ import (
 	"github.com/gatsu420/ngetes/api"
 	"github.com/gatsu420/ngetes/auth"
 	"github.com/gatsu420/ngetes/database"
-	"github.com/gatsu420/ngetes/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
@@ -22,23 +21,25 @@ func main() {
 	}
 	defer db.Close()
 
-	api, err := api.NewAPI(db)
+	auth, err := auth.JWTAuth()
+	if err != nil {
+		log.Fatalf("failed to generate JWT auth: %v", err)
+	}
+
+	api, err := api.NewAPI(db, auth)
 	if err != nil {
 		log.Fatalf("failed to initialize API: %v", err)
 	}
-
-	tokenAuth := auth.NewAuth()
 
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Heartbeat("/ping"))
 
-	// TODO: Refactor handlers
-	router.Post("/login", handlers.LoginHandler)
+	router.Mount("/login", api.Login.Router())
 	router.Group(func(r chi.Router) {
-		r.Use(jwtauth.Verifier(tokenAuth))
-		r.Use(jwtauth.Authenticator(tokenAuth))
+		r.Use(jwtauth.Verifier(auth))
+		r.Use(jwtauth.Authenticator(auth))
 		r.Mount("/tasks", api.Tasks.Router())
 		r.Get("/hello", func(w http.ResponseWriter, r *http.Request) {
 			_, claims, _ := jwtauth.FromContext(r.Context())
