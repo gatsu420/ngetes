@@ -14,7 +14,7 @@ type taskResource struct {
 
 func NewTaskResource(operations handlers.TaskOperations) *taskResource {
 	return &taskResource{
-		Handlers: handlers.NewTaskHandler(operations),
+		Handlers: handlers.NewTaskHandlers(operations),
 	}
 }
 
@@ -24,7 +24,7 @@ type loginResource struct {
 
 func NewLoginResource(operations handlers.LoginOperations) *loginResource {
 	return &loginResource{
-		Handlers: handlers.NewLoginHandler(operations),
+		Handlers: handlers.NewLoginHandlers(operations),
 	}
 }
 

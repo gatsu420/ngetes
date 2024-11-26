@@ -16,7 +16,7 @@ type LoginHandlers struct {
 	Operations LoginOperations
 }
 
-func NewLoginHandler(operations LoginOperations) *LoginHandlers {
+func NewLoginHandlers(operations LoginOperations) *LoginHandlers {
 	return &LoginHandlers{
 		Operations: operations,
 	}

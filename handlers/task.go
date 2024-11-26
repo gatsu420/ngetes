@@ -30,7 +30,7 @@ type TaskHandlers struct {
 	Operations TaskOperations
 }
 
-func NewTaskHandler(operations TaskOperations) *TaskHandlers {
+func NewTaskHandlers(operations TaskOperations) *TaskHandlers {
 	return &TaskHandlers{
 		Operations: operations,
 	}
