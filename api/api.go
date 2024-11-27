@@ -8,6 +8,16 @@ import (
 	"github.com/uptrace/bun"
 )
 
+type userResource struct {
+	handlers *handlers.UserHandlers
+}
+
+func newUserResource(operations handlers.UserOperations) *userResource {
+	return &userResource{
+		handlers: handlers.NewUserHandlers(operations),
+	}
+}
+
 type taskResource struct {
 	handlers *handlers.TaskHandlers
 }
@@ -29,18 +39,22 @@ func newLoginResource(operations handlers.LoginOperations) *loginResource {
 }
 
 type API struct {
+	Users *userResource
 	Tasks *taskResource
 	Login *loginResource
 }
 
 func NewAPI(db *bun.DB, jwtAuth *jwtauth.JWTAuth) (*API, error) {
+	userStore := database.NewUserStore(db)
 	taskStore := database.NewTaskStore(db)
 	authStore := auth.NewAuthStore(jwtAuth)
 
+	users := newUserResource(userStore)
 	tasks := newTaskResource(taskStore)
 	auth := newLoginResource(authStore)
 
 	api := &API{
+		Users: users,
 		Tasks: tasks,
 		Login: auth,
 	}
