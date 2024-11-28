@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gatsu420/ngetes/models"
@@ -10,6 +11,7 @@ import (
 type UserOperations interface {
 	CreateUser(u *models.User) error
 
+	ListRoles() ([]models.Role, error)
 	GetUserRole(roleModel *models.Role, roleName string) (roleID int, err error)
 }
 
@@ -46,6 +48,33 @@ func (hd *UserHandlers) CreateUserHandler(w http.ResponseWriter, r *http.Request
 	err := render.Bind(r, user)
 	if err != nil {
 		render.Render(w, r, errRender(err))
+		return
+	}
+
+	roles, err := hd.Operations.ListRoles()
+	if err != nil {
+		render.Render(w, r, errRender(err))
+		return
+	}
+
+	isRoleNameFieldExist := false
+	if user.User.RoleName != "" {
+		isRoleNameFieldExist = true
+	}
+	if !isRoleNameFieldExist {
+		render.Render(w, r, errRender(errors.New("role_name does not exist in request payload")))
+		return
+	}
+
+	isRoleNameExist := false
+	for _, v := range roles {
+		if user.User.RoleName == v.Name {
+			isRoleNameExist = true
+			break
+		}
+	}
+	if !isRoleNameExist {
+		render.Render(w, r, errRender(errors.New("role_name is wrong")))
 		return
 	}
 

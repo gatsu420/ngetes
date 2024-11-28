@@ -26,6 +26,27 @@ func (s *userStore) CreateUser(u *models.User) error {
 	return nil
 }
 
+func (s *userStore) ListRoles() ([]models.Role, error) {
+	ctx := context.Background()
+	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	roles := []models.Role{}
+	err = s.DB.NewSelect().
+		Model(&roles).
+		Distinct().
+		Column("name").
+		Scan(ctx)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	return roles, nil
+}
+
 func (s *userStore) GetUserRole(roleModel *models.Role, roleName string) (roleID int, err error) {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
