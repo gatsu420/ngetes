@@ -1,13 +1,11 @@
 package auth
 
-import "github.com/go-chi/jwtauth/v5"
+import (
+	"github.com/go-chi/jwtauth/v5"
+)
 
-type authStore struct {
-	jwtAuth *jwtauth.JWTAuth
-}
+func (s *authStore) CreateJWTAuth() (*jwtauth.JWTAuth, error) {
+	auth, err := JWTAuth()
 
-func NewAuthStore(jwtauth *jwtauth.JWTAuth) *authStore {
-	return &authStore{
-		jwtAuth: jwtauth,
-	}
+	return auth, err
 }

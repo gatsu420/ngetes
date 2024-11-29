@@ -8,16 +8,16 @@ import (
 	"github.com/go-chi/render"
 )
 
-type LoginOperations interface {
+type AuthOperations interface {
 	CreateJWTAuth() (*jwtauth.JWTAuth, error)
 }
 
-type LoginHandlers struct {
-	Operations LoginOperations
+type AuthHandlers struct {
+	Operations AuthOperations
 }
 
-func NewLoginHandlers(operations LoginOperations) *LoginHandlers {
-	return &LoginHandlers{
+func NewAuthHandlers(operations AuthOperations) *AuthHandlers {
+	return &AuthHandlers{
 		Operations: operations,
 	}
 }
@@ -32,7 +32,7 @@ func newAuthResponse(token string) *authResponse {
 	}
 }
 
-func (hd *LoginHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (hd *AuthHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	jwtAuth, err := hd.Operations.CreateJWTAuth()
 	if err != nil {
 		render.Render(w, r, errRender(err))

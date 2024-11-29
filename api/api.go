@@ -28,20 +28,20 @@ func newTaskResource(operations handlers.TaskOperations) *taskResource {
 	}
 }
 
-type loginResource struct {
-	handlers *handlers.LoginHandlers
+type authResource struct {
+	handlers *handlers.AuthHandlers
 }
 
-func newLoginResource(operations handlers.LoginOperations) *loginResource {
-	return &loginResource{
-		handlers: handlers.NewLoginHandlers(operations),
+func newAuthResource(operations handlers.AuthOperations) *authResource {
+	return &authResource{
+		handlers: handlers.NewAuthHandlers(operations),
 	}
 }
 
 type API struct {
 	Users *userResource
 	Tasks *taskResource
-	Login *loginResource
+	Auth  *authResource
 }
 
 func NewAPI(db *bun.DB, jwtAuth *jwtauth.JWTAuth) (*API, error) {
@@ -51,12 +51,12 @@ func NewAPI(db *bun.DB, jwtAuth *jwtauth.JWTAuth) (*API, error) {
 
 	users := newUserResource(userStore)
 	tasks := newTaskResource(taskStore)
-	auth := newLoginResource(authStore)
+	auth := newAuthResource(authStore)
 
 	api := &API{
 		Users: users,
 		Tasks: tasks,
-		Login: auth,
+		Auth:  auth,
 	}
 
 	return api, nil
