@@ -66,3 +66,24 @@ func (s *userStore) GetUserRole(roleModel *models.Role, roleName string) (roleID
 	tx.Commit()
 	return roleModel.ID, nil
 }
+
+func (s *userStore) GetUserNameExistence(userModel *models.User, userName string) (isExist bool, err error) {
+	ctx := context.Background()
+	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return false, err
+	}
+
+	existence, err := s.DB.NewSelect().
+		Model(userModel).
+		Distinct().
+		Column("name").
+		Where("name = ?", userName).
+		Exists(ctx)
+	if err != nil {
+		tx.Rollback()
+		return false, err
+	}
+
+	return existence, nil
+}

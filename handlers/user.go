@@ -13,6 +13,7 @@ type UserOperations interface {
 
 	ListRoles() ([]models.Role, error)
 	GetUserRole(roleModel *models.Role, roleName string) (roleID int, err error)
+	GetUserNameExistence(userModel *models.User, userName string) (isExist bool, err error)
 }
 
 type UserHandlers struct {
@@ -93,4 +94,21 @@ func (hd *UserHandlers) CreateUserHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	render.Respond(w, r, newUserResponse(user.User))
+}
+
+func (hd *UserHandlers) GetUserNameExistenceHandler(w http.ResponseWriter, r *http.Request) {
+	user := &userRequest{}
+	err := render.Bind(r, user)
+	if err != nil {
+		render.Render(w, r, errRender(err))
+		return
+	}
+
+	existence, err := hd.Operations.GetUserNameExistence(user.User, user.User.Name)
+	if err != nil {
+		render.Render(w, r, errRender(err))
+		return
+	}
+
+	render.Respond(w, r, existence)
 }
