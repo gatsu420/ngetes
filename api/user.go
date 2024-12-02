@@ -6,7 +6,6 @@ func (rs *userResource) Router() *chi.Mux {
 	router := chi.NewRouter()
 
 	router.Post("/create", rs.handlers.CreateUserHandler)
-	router.Get("/login", rs.handlers.GetUserNameExistenceHandler)
 
 	return router
 }
