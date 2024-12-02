@@ -10,11 +10,10 @@ import (
 
 type UserOperations interface {
 	CreateUser(u *models.User) error
+	GetValidUserName(userModel *models.User, userName string) (isExist bool, err error)
 
 	ListRoles() ([]models.Role, error)
 	GetUserRole(roleModel *models.Role, roleName string) (roleID int, err error)
-
-	GetUserNameExistence(userModel *models.User, userName string) (isExist bool, err error)
 }
 
 type UserHandlers struct {
@@ -35,14 +34,6 @@ func newUserResponse(u *models.User) *userResponse {
 	return &userResponse{
 		User: u,
 	}
-}
-
-type userRequest struct {
-	User *models.User `json:"user"`
-}
-
-func (ur *userRequest) Bind(r *http.Request) error {
-	return nil
 }
 
 func (hd *UserHandlers) CreateUserHandler(w http.ResponseWriter, r *http.Request) {

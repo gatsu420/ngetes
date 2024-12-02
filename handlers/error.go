@@ -27,3 +27,10 @@ func errRender(err error) render.Renderer {
 		ErrorText:      err.Error(),
 	}
 }
+
+func errUnauthorizedRender() render.Renderer {
+	return &errResponse{
+		HTTPStatusCode: http.StatusUnauthorized,
+		StatusText:     "wrong name",
+	}
+}

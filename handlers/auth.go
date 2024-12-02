@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -34,13 +35,13 @@ func newTokenResponse(token string) *tokenResponse {
 	}
 }
 
-type userNameExistenceResponse struct {
-	Existence bool `json:"existence"`
+type validUserNameResponse struct {
+	Response string `json:"message"`
 }
 
-func newUserNameExistenceResponse(existence bool) *userNameExistenceResponse {
-	return &userNameExistenceResponse{
-		Existence: existence,
+func newValidUserNameResponse(userName string) *validUserNameResponse {
+	return &validUserNameResponse{
+		Response: fmt.Sprintf("welcome, %v", userName),
 	}
 }
 
@@ -63,7 +64,7 @@ func (hd *AuthHandlers) GetTokenHandler(w http.ResponseWriter, r *http.Request) 
 	render.Respond(w, r, newTokenResponse(token))
 }
 
-func (hd *AuthHandlers) GetUserNameExistenceHandler(w http.ResponseWriter, r *http.Request) {
+func (hd *AuthHandlers) GetValidUserNameHandler(w http.ResponseWriter, r *http.Request) {
 	user := &userRequest{}
 	err := render.Bind(r, user)
 	if err != nil {
@@ -71,11 +72,15 @@ func (hd *AuthHandlers) GetUserNameExistenceHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	existence, err := hd.UserOperations.GetUserNameExistence(user.User, user.User.Name)
+	existence, err := hd.UserOperations.GetValidUserName(user.User, user.User.Name)
 	if err != nil {
 		render.Render(w, r, errRender(err))
 		return
 	}
 
-	render.Respond(w, r, newUserNameExistenceResponse(existence))
+	if !existence {
+		render.Render(w, r, errUnauthorizedRender())
+	} else {
+		render.Respond(w, r, newValidUserNameResponse(user.User.Name))
+	}
 }
