@@ -13,6 +13,8 @@ type UserOperations interface {
 
 	ListRoles() ([]models.Role, error)
 	GetUserRole(roleModel *models.Role, roleName string) (roleID int, err error)
+
+	GetUserNameExistence(userModel *models.User, userName string) (isExist bool, err error)
 }
 
 type UserHandlers struct {

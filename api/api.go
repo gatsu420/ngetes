@@ -32,9 +32,9 @@ type authResource struct {
 	handlers *handlers.AuthHandlers
 }
 
-func newAuthResource(operations handlers.AuthOperations) *authResource {
+func newAuthResource(operations handlers.AuthOperations, userOperations handlers.UserOperations) *authResource {
 	return &authResource{
-		handlers: handlers.NewAuthHandlers(operations),
+		handlers: handlers.NewAuthHandlers(operations, userOperations),
 	}
 }
 
@@ -51,7 +51,7 @@ func NewAPI(db *bun.DB, jwtAuth *jwtauth.JWTAuth) (*API, error) {
 
 	users := newUserResource(userStore)
 	tasks := newTaskResource(taskStore)
-	auth := newAuthResource(authStore)
+	auth := newAuthResource(authStore, userStore)
 
 	api := &API{
 		Users: users,

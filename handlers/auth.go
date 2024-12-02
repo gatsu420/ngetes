@@ -13,26 +13,38 @@ type AuthOperations interface {
 }
 
 type AuthHandlers struct {
-	Operations AuthOperations
+	Operations     AuthOperations
+	UserOperations UserOperations
 }
 
-func NewAuthHandlers(operations AuthOperations) *AuthHandlers {
+func NewAuthHandlers(operations AuthOperations, userOperations UserOperations) *AuthHandlers {
 	return &AuthHandlers{
-		Operations: operations,
+		Operations:     operations,
+		UserOperations: userOperations,
 	}
 }
 
-type authResponse struct {
+type tokenResponse struct {
 	Token string `json:"access_token"`
 }
 
-func newAuthResponse(token string) *authResponse {
-	return &authResponse{
+func newTokenResponse(token string) *tokenResponse {
+	return &tokenResponse{
 		Token: token,
 	}
 }
 
-func (hd *AuthHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
+type userNameExistenceResponse struct {
+	Existence bool `json:"existence"`
+}
+
+func newUserNameExistenceResponse(existence bool) *userNameExistenceResponse {
+	return &userNameExistenceResponse{
+		Existence: existence,
+	}
+}
+
+func (hd *AuthHandlers) GetTokenHandler(w http.ResponseWriter, r *http.Request) {
 	jwtAuth, err := hd.Operations.CreateJWTAuth()
 	if err != nil {
 		render.Render(w, r, errRender(err))
@@ -48,5 +60,22 @@ func (hd *AuthHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, newAuthResponse(token))
+	render.Respond(w, r, newTokenResponse(token))
+}
+
+func (hd *AuthHandlers) GetUserNameExistenceHandler(w http.ResponseWriter, r *http.Request) {
+	user := &userRequest{}
+	err := render.Bind(r, user)
+	if err != nil {
+		render.Render(w, r, errRender(err))
+		return
+	}
+
+	existence, err := hd.UserOperations.GetUserNameExistence(user.User, user.User.Name)
+	if err != nil {
+		render.Render(w, r, errRender(err))
+		return
+	}
+
+	render.Respond(w, r, newUserNameExistenceResponse(existence))
 }
