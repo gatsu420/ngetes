@@ -34,3 +34,10 @@ func errUnauthorizedRender() render.Renderer {
 		StatusText:     "wrong name",
 	}
 }
+
+func errForbiddenRender() render.Renderer {
+	return &errResponse{
+		HTTPStatusCode: http.StatusForbidden,
+		StatusText:     "access forbidden",
+	}
+}

@@ -47,7 +47,7 @@ func (s *userStore) ListRoles() ([]models.Role, error) {
 	return roles, nil
 }
 
-func (s *userStore) GetUserRole(roleModel *models.Role, roleName string) (roleID int, err error) {
+func (s *userStore) GetRoleID(roleModel *models.Role, roleName string) (roleID int, err error) {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -65,6 +65,26 @@ func (s *userStore) GetUserRole(roleModel *models.Role, roleName string) (roleID
 
 	tx.Commit()
 	return roleModel.ID, nil
+}
+
+func (s *userStore) GetUserRole(name string) (roleID int, err error) {
+	ctx := context.Background()
+	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return 0, err
+	}
+
+	err = s.DB.NewSelect().
+		Model((*models.User)(nil)).
+		Where("name = ?", name).
+		Scan(ctx, &roleID)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	tx.Commit()
+	return roleID, nil
 }
 
 func (s *userStore) GetValidUserName(userName string) (isExist bool, err error) {

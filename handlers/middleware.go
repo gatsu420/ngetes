@@ -29,6 +29,25 @@ func (hd *AuthHandlers) TokenClaimCtx(next http.Handler) http.Handler {
 	})
 }
 
+func (hd *AuthHandlers) AdminAccess(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claim := r.Context().Value(authTokenClaimCtx).(map[string]interface{})
+		userName := claim["userName"].(string)
+
+		roleID, err := hd.UserOperations.GetUserRole(userName)
+		if err != nil {
+			render.Render(w, r, errRender(err))
+			return
+		}
+		if roleID != 1 {
+			render.Render(w, r, errForbiddenRender())
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (hd *TaskHandlers) TaskCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(chi.URLParam(r, "taskID"))
