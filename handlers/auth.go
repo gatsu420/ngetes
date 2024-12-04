@@ -1,17 +1,12 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-chi/render"
 )
-
-type ctxAuthKey int
-
-const ctxAuthTokenClaim ctxAuthKey = iota
 
 type AuthOperations interface {
 	CreateJWTAuth() (*jwtauth.JWTAuth, error)
@@ -28,39 +23,6 @@ func NewAuthHandlers(operations AuthOperations, userOperations UserOperations) *
 		Operations:     operations,
 		UserOperations: userOperations,
 	}
-}
-
-type tokenResponse struct {
-	Token string `json:"access_token"`
-}
-
-func newTokenResponse(token string) *tokenResponse {
-	return &tokenResponse{
-		Token: token,
-	}
-}
-
-type tokenClaimResponse struct {
-	Claim map[string]interface{} `json:"claim"`
-}
-
-func newTokenClaimResponse(c map[string]interface{}) *tokenClaimResponse {
-	return &tokenClaimResponse{
-		Claim: c,
-	}
-}
-
-func (hd *AuthHandlers) TokenClaimCtx(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		claim, err := hd.Operations.GetJWTClaim(r)
-		if err != nil {
-			render.Render(w, r, errRender(err))
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), ctxAuthTokenClaim, claim)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
 }
 
 func (hd *AuthHandlers) GetTokenHandler(w http.ResponseWriter, r *http.Request) {

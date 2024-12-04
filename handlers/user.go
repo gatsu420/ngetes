@@ -26,16 +26,6 @@ func NewUserHandlers(operations UserOperations) *UserHandlers {
 	}
 }
 
-type userResponse struct {
-	User *models.User `json:"user"`
-}
-
-func newUserResponse(u *models.User) *userResponse {
-	return &userResponse{
-		User: u,
-	}
-}
-
 func (hd *UserHandlers) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := &userRequest{}
 	err := render.Bind(r, user)
