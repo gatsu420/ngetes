@@ -12,8 +12,8 @@ func (rs *taskResource) Router() *chi.Mux {
 		router.Get("/", rs.handlers.GetHandler)
 
 		router.Group(func(router chi.Router) {
-			router.Use(rs.tokenClaimCtx)
-			router.Use(rs.adminAccess)
+			router.Use(rs.middlewares.TokenClaimCtx)
+			router.Use(rs.middlewares.AdminAccess)
 			router.Put("/", rs.handlers.UpdateHandler)
 			router.Delete("/", rs.handlers.DeleteHandler)
 		})

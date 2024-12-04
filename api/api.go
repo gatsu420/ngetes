@@ -21,20 +21,14 @@ func newUserResource(operations handlers.UserOperations) *userResource {
 }
 
 type taskResource struct {
-	handlers      *handlers.TaskHandlers
-	tokenClaimCtx func(http.Handler) http.Handler
-	adminAccess   func(http.Handler) http.Handler
+	handlers    *handlers.TaskHandlers
+	middlewares *middlewareResource
 }
 
-func newTaskResource(
-	operations handlers.TaskOperations,
-	tokenClaimCtx func(http.Handler) http.Handler,
-	adminAccess func(http.Handler) http.Handler,
-) *taskResource {
+func newTaskResource(operations handlers.TaskOperations, middlewares *middlewareResource) *taskResource {
 	return &taskResource{
-		handlers:      handlers.NewTaskHandlers(operations),
-		tokenClaimCtx: tokenClaimCtx,
-		adminAccess:   adminAccess,
+		handlers:    handlers.NewTaskHandlers(operations),
+		middlewares: middlewares,
 	}
 }
 
@@ -45,6 +39,18 @@ type authResource struct {
 func newAuthResource(operations handlers.AuthOperations, userOperations handlers.UserOperations) *authResource {
 	return &authResource{
 		handlers: handlers.NewAuthHandlers(operations, userOperations),
+	}
+}
+
+type middlewareResource struct {
+	TokenClaimCtx func(http.Handler) http.Handler
+	AdminAccess   func(http.Handler) http.Handler
+}
+
+func newMiddlewareResource(authStore *auth.AuthStore, userStore *database.UserStore) *middlewareResource {
+	return &middlewareResource{
+		TokenClaimCtx: newAuthResource(authStore, userStore).handlers.TokenClaimCtx,
+		AdminAccess:   newAuthResource(authStore, userStore).handlers.AdminAccess,
 	}
 }
 
@@ -59,9 +65,10 @@ func NewAPI(db *bun.DB, jwtAuth *jwtauth.JWTAuth) (*API, error) {
 	userStore := database.NewUserStore(db)
 	taskStore := database.NewTaskStore(db)
 
+	middleware := newMiddlewareResource(authStore, userStore)
 	auth := newAuthResource(authStore, userStore)
 	users := newUserResource(userStore)
-	tasks := newTaskResource(taskStore, auth.handlers.TokenClaimCtx, auth.handlers.AdminAccess)
+	tasks := newTaskResource(taskStore, middleware)
 
 	api := &API{
 		Users: users,

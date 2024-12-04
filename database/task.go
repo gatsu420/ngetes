@@ -59,7 +59,7 @@ func (f *TaskFilter) Apply(q *bun.SelectQuery) *bun.SelectQuery {
 	return q
 }
 
-func (s *taskStore) List(f *TaskFilter) ([]models.Task, error) {
+func (s *TaskStore) List(f *TaskFilter) ([]models.Task, error) {
 	t := []models.Task{}
 
 	err := s.DB.NewSelect().
@@ -73,7 +73,7 @@ func (s *taskStore) List(f *TaskFilter) ([]models.Task, error) {
 	return t, nil
 }
 
-func (s *taskStore) Get(id int) (*models.Task, error) {
+func (s *TaskStore) Get(id int) (*models.Task, error) {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -96,7 +96,7 @@ func (s *taskStore) Get(id int) (*models.Task, error) {
 	return t, nil
 }
 
-func (s *taskStore) Create(t *models.Task) (taskID int, err error) {
+func (s *TaskStore) Create(t *models.Task) (taskID int, err error) {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -115,7 +115,7 @@ func (s *taskStore) Create(t *models.Task) (taskID int, err error) {
 	return t.ID, nil
 }
 
-func (s *taskStore) Update(t *models.Task) error {
+func (s *TaskStore) Update(t *models.Task) error {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -135,7 +135,7 @@ func (s *taskStore) Update(t *models.Task) error {
 	return nil
 }
 
-func (s *taskStore) Delete(t *models.Task) error {
+func (s *TaskStore) Delete(t *models.Task) error {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -155,7 +155,7 @@ func (s *taskStore) Delete(t *models.Task) error {
 	return nil
 }
 
-func (s *taskStore) CreateTracker(e *models.Event) error {
+func (s *TaskStore) CreateTracker(e *models.Event) error {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -178,7 +178,7 @@ func (s *taskStore) CreateTracker(e *models.Event) error {
 	return nil
 }
 
-func (s *taskStore) GetClaim(r *http.Request) (map[string]interface{}, error) {
+func (s *TaskStore) GetClaim(r *http.Request) (map[string]interface{}, error) {
 	_, claims, err := jwtauth.FromContext(r.Context())
 	if err != nil {
 		return nil, err

@@ -7,7 +7,7 @@ import (
 	"github.com/gatsu420/ngetes/models"
 )
 
-func (s *userStore) CreateUser(u *models.User) error {
+func (s *UserStore) CreateUser(u *models.User) error {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -26,7 +26,7 @@ func (s *userStore) CreateUser(u *models.User) error {
 	return nil
 }
 
-func (s *userStore) ListRoles() ([]models.Role, error) {
+func (s *UserStore) ListRoles() ([]models.Role, error) {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -47,7 +47,7 @@ func (s *userStore) ListRoles() ([]models.Role, error) {
 	return roles, nil
 }
 
-func (s *userStore) GetRoleID(roleModel *models.Role, roleName string) (roleID int, err error) {
+func (s *UserStore) GetRoleID(roleModel *models.Role, roleName string) (roleID int, err error) {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -67,7 +67,7 @@ func (s *userStore) GetRoleID(roleModel *models.Role, roleName string) (roleID i
 	return roleModel.ID, nil
 }
 
-func (s *userStore) GetUserRole(name string) (roleID int, err error) {
+func (s *UserStore) GetUserRole(name string) (roleID int, err error) {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -88,7 +88,7 @@ func (s *userStore) GetUserRole(name string) (roleID int, err error) {
 	return roleID, nil
 }
 
-func (s *userStore) GetValidUserName(userName string) (isExist bool, err error) {
+func (s *UserStore) GetValidUserName(userName string) (isExist bool, err error) {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
