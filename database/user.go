@@ -67,7 +67,7 @@ func (s *userStore) GetUserRole(roleModel *models.Role, roleName string) (roleID
 	return roleModel.ID, nil
 }
 
-func (s *userStore) GetValidUserName(userModel *models.User, userName string) (isExist bool, err error) {
+func (s *userStore) GetValidUserName(userName string) (isExist bool, err error) {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -75,7 +75,7 @@ func (s *userStore) GetValidUserName(userModel *models.User, userName string) (i
 	}
 
 	existence, err := s.DB.NewSelect().
-		Model(userModel).
+		Model((*models.User)(nil)).
 		Distinct().
 		Column("name").
 		Where("name = ?", userName).

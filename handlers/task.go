@@ -69,16 +69,6 @@ func newDeletedTaskResponse(t *models.Task) *deletedTaskResponse {
 	}
 }
 
-type claimResponse struct {
-	Claims map[string]interface{} `json:"claims"`
-}
-
-func newClaimResponse(claims map[string]interface{}) *claimResponse {
-	return &claimResponse{
-		Claims: claims,
-	}
-}
-
 type taskRequest struct {
 	Task *models.Task `json:"task"`
 }
@@ -227,14 +217,4 @@ func (rs *TaskHandlers) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.Respond(w, r, newDeletedTaskResponse(task))
-}
-
-func (rs *TaskHandlers) GetClaimHandler(w http.ResponseWriter, r *http.Request) {
-	claims, err := rs.Operations.GetClaim(r)
-	if err != nil {
-		render.Render(w, r, errRender(err))
-		return
-	}
-
-	render.Respond(w, r, newClaimResponse(claims))
 }

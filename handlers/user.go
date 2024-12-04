@@ -10,7 +10,7 @@ import (
 
 type UserOperations interface {
 	CreateUser(u *models.User) error
-	GetValidUserName(userModel *models.User, userName string) (isExist bool, err error)
+	GetValidUserName(userName string) (isExist bool, err error)
 
 	ListRoles() ([]models.Role, error)
 	GetUserRole(roleModel *models.Role, roleName string) (roleID int, err error)

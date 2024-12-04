@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"context"
 	"net/http"
 	"time"
 
@@ -9,8 +9,13 @@ import (
 	"github.com/go-chi/render"
 )
 
+type ctxAuthKey int
+
+const ctxAuthTokenClaim ctxAuthKey = iota
+
 type AuthOperations interface {
 	CreateJWTAuth() (*jwtauth.JWTAuth, error)
+	GetJWTClaim(r *http.Request) (map[string]interface{}, error)
 }
 
 type AuthHandlers struct {
@@ -35,17 +40,48 @@ func newTokenResponse(token string) *tokenResponse {
 	}
 }
 
-type validUserNameResponse struct {
-	Response string `json:"message"`
+type tokenClaimResponse struct {
+	Claim map[string]interface{} `json:"claim"`
 }
 
-func newValidUserNameResponse(userName string) *validUserNameResponse {
-	return &validUserNameResponse{
-		Response: fmt.Sprintf("welcome, %v", userName),
+func newTokenClaimResponse(c map[string]interface{}) *tokenClaimResponse {
+	return &tokenClaimResponse{
+		Claim: c,
 	}
 }
 
+func (hd *AuthHandlers) TokenClaimCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claim, err := hd.Operations.GetJWTClaim(r)
+		if err != nil {
+			render.Render(w, r, errRender(err))
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), ctxAuthTokenClaim, claim)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 func (hd *AuthHandlers) GetTokenHandler(w http.ResponseWriter, r *http.Request) {
+	user := &userRequest{}
+	err := render.Bind(r, user)
+	if err != nil {
+		render.Render(w, r, errRender(err))
+		return
+	}
+
+	existence, err := hd.UserOperations.GetValidUserName(user.User.Name)
+	if err != nil {
+		render.Render(w, r, errRender(err))
+		return
+	}
+
+	if !existence {
+		render.Render(w, r, errUnauthorizedRender())
+		return
+	}
+
 	jwtAuth, err := hd.Operations.CreateJWTAuth()
 	if err != nil {
 		render.Render(w, r, errRender(err))
@@ -53,8 +89,8 @@ func (hd *AuthHandlers) GetTokenHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	_, token, err := jwtAuth.Encode(map[string]interface{}{
-		"user_id": "ngetes doankk",
-		"exp":     time.Now().Add(100 * time.Second).Unix(),
+		"exp":      time.Now().Add(100 * time.Second).Unix(),
+		"userName": user.User.Name,
 	})
 	if err != nil {
 		render.Render(w, r, errRender(err))
@@ -64,23 +100,12 @@ func (hd *AuthHandlers) GetTokenHandler(w http.ResponseWriter, r *http.Request) 
 	render.Respond(w, r, newTokenResponse(token))
 }
 
-func (hd *AuthHandlers) GetValidUserNameHandler(w http.ResponseWriter, r *http.Request) {
-	user := &userRequest{}
-	err := render.Bind(r, user)
+func (hd *AuthHandlers) GetTokenClaimHandler(w http.ResponseWriter, r *http.Request) {
+	claim, err := hd.Operations.GetJWTClaim(r)
 	if err != nil {
 		render.Render(w, r, errRender(err))
 		return
 	}
 
-	existence, err := hd.UserOperations.GetValidUserName(user.User, user.User.Name)
-	if err != nil {
-		render.Render(w, r, errRender(err))
-		return
-	}
-
-	if !existence {
-		render.Render(w, r, errUnauthorizedRender())
-	} else {
-		render.Respond(w, r, newValidUserNameResponse(user.User.Name))
-	}
+	render.Respond(w, r, newTokenClaimResponse(claim))
 }

@@ -13,7 +13,10 @@ func (rs *authResource) LandingRouter() *chi.Mux {
 func (rs *authResource) Router() *chi.Mux {
 	router := chi.NewRouter()
 
-	router.Post("/login", rs.handlers.GetValidUserNameHandler)
+	router.Group(func(router chi.Router) {
+		router.Use(rs.handlers.TokenClaimCtx)
+		router.Get("/claim", rs.handlers.GetTokenClaimHandler)
+	})
 
 	return router
 }
