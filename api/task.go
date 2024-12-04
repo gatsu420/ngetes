@@ -10,11 +10,14 @@ func (rs *taskResource) Router() *chi.Mux {
 	router.Route("/{taskID}", func(router chi.Router) {
 		router.Use(rs.handlers.TaskCtx)
 		router.Get("/", rs.handlers.GetHandler)
-		router.Put("/", rs.handlers.UpdateHandler)
-		router.Delete("/", rs.handlers.DeleteHandler)
-	})
 
-	router.Get("/claims", rs.handlers.GetClaimHandler)
+		router.Group(func(router chi.Router) {
+			router.Use(rs.middlewares.TokenClaimCtx)
+			router.Use(rs.middlewares.AdminAccess)
+			router.Put("/", rs.handlers.UpdateHandler)
+			router.Delete("/", rs.handlers.DeleteHandler)
+		})
+	})
 
 	return router
 }

@@ -35,11 +35,12 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Heartbeat("/ping"))
 
-	router.Mount("/signup", api.Users.Router())
-	router.Mount("/login", api.Login.Router())
+	router.Mount("/users", api.Users.Router())
+	router.Mount("/token", api.Auth.LandingRouter())
 	router.Group(func(r chi.Router) {
 		r.Use(jwtauth.Verifier(auth))
 		r.Use(jwtauth.Authenticator(auth))
+		r.Mount("/auth", api.Auth.Router())
 		r.Mount("/tasks", api.Tasks.Router())
 	})
 
