@@ -10,6 +10,16 @@ import (
 	"github.com/uptrace/bun"
 )
 
+type authResource struct {
+	handlers *handlers.AuthHandlers
+}
+
+func newAuthResource(operations handlers.AuthOperations, userOperations handlers.UserOperations) *authResource {
+	return &authResource{
+		handlers: handlers.NewAuthHandlers(operations, userOperations),
+	}
+}
+
 type userResource struct {
 	handlers *handlers.UserHandlers
 }
@@ -29,16 +39,6 @@ func newTaskResource(operations handlers.TaskOperations, middlewares *middleware
 	return &taskResource{
 		handlers:    handlers.NewTaskHandlers(operations),
 		middlewares: middlewares,
-	}
-}
-
-type authResource struct {
-	handlers *handlers.AuthHandlers
-}
-
-func newAuthResource(operations handlers.AuthOperations, userOperations handlers.UserOperations) *authResource {
-	return &authResource{
-		handlers: handlers.NewAuthHandlers(operations, userOperations),
 	}
 }
 
