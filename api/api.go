@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/gatsu420/ngetes/auth"
 	"github.com/gatsu420/ngetes/database"
 	"github.com/gatsu420/ngetes/handlers"
@@ -19,12 +21,20 @@ func newUserResource(operations handlers.UserOperations) *userResource {
 }
 
 type taskResource struct {
-	handlers *handlers.TaskHandlers
+	handlers      *handlers.TaskHandlers
+	tokenClaimCtx func(http.Handler) http.Handler
+	adminAccess   func(http.Handler) http.Handler
 }
 
-func newTaskResource(operations handlers.TaskOperations) *taskResource {
+func newTaskResource(
+	operations handlers.TaskOperations,
+	tokenClaimCtx func(http.Handler) http.Handler,
+	adminAccess func(http.Handler) http.Handler,
+) *taskResource {
 	return &taskResource{
-		handlers: handlers.NewTaskHandlers(operations),
+		handlers:      handlers.NewTaskHandlers(operations),
+		tokenClaimCtx: tokenClaimCtx,
+		adminAccess:   adminAccess,
 	}
 }
 
@@ -45,13 +55,13 @@ type API struct {
 }
 
 func NewAPI(db *bun.DB, jwtAuth *jwtauth.JWTAuth) (*API, error) {
+	authStore := auth.NewAuthStore(jwtAuth)
 	userStore := database.NewUserStore(db)
 	taskStore := database.NewTaskStore(db)
-	authStore := auth.NewAuthStore(jwtAuth)
 
-	users := newUserResource(userStore)
-	tasks := newTaskResource(taskStore)
 	auth := newAuthResource(authStore, userStore)
+	users := newUserResource(userStore)
+	tasks := newTaskResource(taskStore, auth.handlers.TokenClaimCtx, auth.handlers.AdminAccess)
 
 	api := &API{
 		Users: users,

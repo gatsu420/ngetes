@@ -76,6 +76,7 @@ func (s *userStore) GetUserRole(name string) (roleID int, err error) {
 
 	err = s.DB.NewSelect().
 		Model((*models.User)(nil)).
+		Column("role_id").
 		Where("name = ?", name).
 		Scan(ctx, &roleID)
 	if err != nil {
