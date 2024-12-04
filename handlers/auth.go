@@ -63,11 +63,7 @@ func (hd *AuthHandlers) GetTokenHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (hd *AuthHandlers) GetTokenClaimHandler(w http.ResponseWriter, r *http.Request) {
-	claim, err := hd.Operations.GetJWTClaim(r)
-	if err != nil {
-		render.Render(w, r, errRender(err))
-		return
-	}
+	claim := r.Context().Value(authTokenClaimCtx).(map[string]interface{})
 
 	render.Respond(w, r, newTokenClaimResponse(claim))
 }
