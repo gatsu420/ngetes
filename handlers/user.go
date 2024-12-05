@@ -68,6 +68,16 @@ func (hd *UserHandlers) CreateUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	isUserNameExist, err := hd.Operations.GetValidUserName(user.User.Name)
+	if err != nil {
+		render.Render(w, r, errRender(err))
+		return
+	}
+	if isUserNameExist {
+		render.Render(w, r, errRender(errors.New("name already exists")))
+		return
+	}
+
 	user.User.RoleID = roleID
 	err = hd.Operations.CreateUser(user.User)
 	if err != nil {
