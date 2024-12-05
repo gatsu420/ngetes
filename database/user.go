@@ -26,7 +26,7 @@ func (s *UserStore) CreateUser(u *models.User) error {
 	return nil
 }
 
-func (s *UserStore) GetValidUserName(name string) (isExist bool, err error) {
+func (s *UserStore) GetUserNameExistence(name string) (isExist bool, err error) {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {

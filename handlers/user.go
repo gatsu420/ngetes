@@ -10,7 +10,7 @@ import (
 
 type UserOperations interface {
 	CreateUser(u *models.User) error
-	GetValidUserName(userName string) (isExist bool, err error)
+	GetUserNameExistence(userName string) (isExist bool, err error)
 
 	ListRoles() ([]models.Role, error)
 	GetRoleByRoleName(roleName string) (roleID int, err error)
@@ -68,7 +68,7 @@ func (hd *UserHandlers) CreateUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	isUserNameExist, err := hd.Operations.GetValidUserName(user.User.Name)
+	isUserNameExist, err := hd.Operations.GetUserNameExistence(user.User.Name)
 	if err != nil {
 		render.Render(w, r, errRender(err))
 		return

@@ -33,7 +33,7 @@ func (hd *AuthHandlers) GetTokenHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	existence, err := hd.UserOperations.GetValidUserName(user.User.Name)
+	existence, err := hd.UserOperations.GetUserNameExistence(user.User.Name)
 	if err != nil {
 		render.Render(w, r, errRender(err))
 		return
