@@ -26,6 +26,28 @@ func (s *UserStore) CreateUser(u *models.User) error {
 	return nil
 }
 
+func (s *UserStore) GetUserNameExistence(name string) (isExist bool, err error) {
+	ctx := context.Background()
+	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return false, err
+	}
+
+	existence, err := s.DB.NewSelect().
+		Model((*models.User)(nil)).
+		Distinct().
+		Column("name").
+		Where("name = ?", name).
+		Exists(ctx)
+	if err != nil {
+		tx.Rollback()
+		return false, err
+	}
+
+	tx.Commit()
+	return existence, nil
+}
+
 func (s *UserStore) ListRoles() ([]models.Role, error) {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
@@ -47,7 +69,7 @@ func (s *UserStore) ListRoles() ([]models.Role, error) {
 	return roles, nil
 }
 
-func (s *UserStore) GetRoleID(roleModel *models.Role, roleName string) (roleID int, err error) {
+func (s *UserStore) GetRoleByRoleName(roleName string) (roleID int, err error) {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -55,19 +77,20 @@ func (s *UserStore) GetRoleID(roleModel *models.Role, roleName string) (roleID i
 	}
 
 	err = s.DB.NewSelect().
-		Model(roleModel).
+		Model((*models.Role)(nil)).
+		Column("id").
 		Where("name = ?", roleName).
-		Scan(ctx)
+		Scan(ctx, &roleID)
 	if err != nil {
 		tx.Rollback()
 		return 0, err
 	}
 
 	tx.Commit()
-	return roleModel.ID, nil
+	return roleID, nil
 }
 
-func (s *UserStore) GetUserRole(name string) (roleID int, err error) {
+func (s *UserStore) GetRoleByUserName(name string) (roleID int, err error) {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -86,26 +109,4 @@ func (s *UserStore) GetUserRole(name string) (roleID int, err error) {
 
 	tx.Commit()
 	return roleID, nil
-}
-
-func (s *UserStore) GetValidUserName(userName string) (isExist bool, err error) {
-	ctx := context.Background()
-	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
-	if err != nil {
-		return false, err
-	}
-
-	existence, err := s.DB.NewSelect().
-		Model((*models.User)(nil)).
-		Distinct().
-		Column("name").
-		Where("name = ?", userName).
-		Exists(ctx)
-	if err != nil {
-		tx.Rollback()
-		return false, err
-	}
-
-	tx.Commit()
-	return existence, nil
 }

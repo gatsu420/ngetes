@@ -34,7 +34,7 @@ func (hd *AuthHandlers) AdminAccess(next http.Handler) http.Handler {
 		claim := r.Context().Value(authTokenClaimCtx).(map[string]interface{})
 		userName := claim["userName"].(string)
 
-		roleID, err := hd.UserOperations.GetUserRole(userName)
+		roleID, err := hd.UserOperations.GetRoleByUserName(userName)
 		if err != nil {
 			render.Render(w, r, errRender(err))
 			return
