@@ -13,8 +13,8 @@ type UserOperations interface {
 	GetValidUserName(userName string) (isExist bool, err error)
 
 	ListRoles() ([]models.Role, error)
-	GetRoleID(roleModel *models.Role, roleName string) (roleID int, err error)
-	GetUserRole(name string) (roleID int, err error)
+	GetRoleByRoleName(roleName string) (roleID int, err error)
+	GetRoleByUserName(name string) (roleID int, err error)
 }
 
 type UserHandlers struct {
@@ -62,8 +62,7 @@ func (hd *UserHandlers) CreateUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	role := &models.Role{}
-	roleID, err := hd.Operations.GetRoleID(role, user.User.RoleName)
+	roleID, err := hd.Operations.GetRoleByRoleName(user.User.RoleName)
 	if err != nil {
 		render.Render(w, r, errRender(err))
 		return
