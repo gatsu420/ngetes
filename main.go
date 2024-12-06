@@ -31,7 +31,7 @@ func main() {
 		log.Fatalf("failed to generate JWT auth: %v", err)
 	}
 
-	api, err := api.NewAPI(db, auth)
+	api, err := api.NewAPI(db, rdb, auth)
 	if err != nil {
 		log.Fatalf("failed to initialize API: %v", err)
 	}

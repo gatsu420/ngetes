@@ -7,6 +7,7 @@ import (
 	"github.com/gatsu420/ngetes/database"
 	"github.com/gatsu420/ngetes/handlers"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/redis/go-redis/v9"
 	"github.com/uptrace/bun"
 )
 
@@ -60,8 +61,8 @@ type API struct {
 	Auth  *authResource
 }
 
-func NewAPI(db *bun.DB, jwtAuth *jwtauth.JWTAuth) (*API, error) {
-	authStore := auth.NewAuthStore(jwtAuth)
+func NewAPI(db *bun.DB, rdb *redis.Client, jwtAuth *jwtauth.JWTAuth) (*API, error) {
+	authStore := auth.NewAuthStore(jwtAuth, rdb)
 	userStore := database.NewUserStore(db)
 	taskStore := database.NewTaskStore(db)
 
