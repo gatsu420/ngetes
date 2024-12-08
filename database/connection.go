@@ -13,13 +13,46 @@ import (
 	"github.com/uptrace/bun/extra/bundebug"
 )
 
-func DBConn() (*bun.DB, error) {
-	viper.SetConfigFile("./.env")
-	if err := viper.ReadInConfig(); err != nil {
-		panic(fmt.Errorf("fatal error config file: %w", err))
+var (
+	dbConfig struct {
+		address  string
+		database string
+		user     string
+		password string
 	}
 
-	dsn := "postgres://" + viper.GetString("db_user") + ":" + viper.GetString("db_password") + "@" + viper.GetString("db_addr") + "/" + viper.GetString("db_database") + "?sslmode=disable"
+	redisConfig struct {
+		address  string
+		database int
+		password string
+	}
+)
+
+func init() {
+	viper.SetConfigFile("./.env")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("fatal error while trying to read config file: %v", err))
+	}
+
+	dbConfig.address = viper.GetString("DB_ADDR")
+	dbConfig.database = viper.GetString("DB_DATABASE")
+	dbConfig.user = viper.GetString("DB_USER")
+	dbConfig.password = viper.GetString("DB_PASSWORD")
+
+	redisConfig.address = viper.GetString("REDIS_ADDR")
+	redisConfig.database = viper.GetInt("REDIS_DATABASE")
+	redisConfig.password = viper.GetString("REDIS_PASSWORD")
+}
+
+func DBConn() (*bun.DB, error) {
+	dsn := fmt.Sprintf(`postgres://%v:%v@%v/%v?sslmode=disable`,
+		dbConfig.user,
+		dbConfig.password,
+		dbConfig.address,
+		dbConfig.database,
+	)
+
 	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
 	db := bun.NewDB(sqldb, pgdialect.New())
 	db.AddQueryHook(bundebug.NewQueryHook())
@@ -44,9 +77,9 @@ func RedisConn() (*redis.Client, error) {
 	}
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     viper.GetString("redis_addr"),
-		Password: viper.GetString("redis_password"),
-		DB:       viper.GetInt("redis_database"),
+		Addr:     redisConfig.address,
+		Password: redisConfig.password,
+		DB:       redisConfig.database,
 	})
 
 	if err := checkRedisConn(rdb); err != nil {
