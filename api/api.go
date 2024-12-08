@@ -7,6 +7,7 @@ import (
 	"github.com/gatsu420/ngetes/database"
 	"github.com/gatsu420/ngetes/handlers"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/redis/go-redis/v9"
 	"github.com/uptrace/bun"
 )
 
@@ -43,14 +44,16 @@ func newTaskResource(operations handlers.TaskOperations, middlewares *middleware
 }
 
 type middlewareResource struct {
-	TokenClaimCtx func(http.Handler) http.Handler
-	AdminAccess   func(http.Handler) http.Handler
+	TokenClaimCtx        func(http.Handler) http.Handler
+	TokenBlacklistAccess func(http.Handler) http.Handler
+	AdminAccess          func(http.Handler) http.Handler
 }
 
 func newMiddlewareResource(authStore *auth.AuthStore, userStore *database.UserStore) *middlewareResource {
 	return &middlewareResource{
-		TokenClaimCtx: newAuthResource(authStore, userStore).handlers.TokenClaimCtx,
-		AdminAccess:   newAuthResource(authStore, userStore).handlers.AdminAccess,
+		TokenClaimCtx:        newAuthResource(authStore, userStore).handlers.TokenClaimCtx,
+		TokenBlacklistAccess: newAuthResource(authStore, userStore).handlers.TokenBlacklistAccess,
+		AdminAccess:          newAuthResource(authStore, userStore).handlers.AdminAccess,
 	}
 }
 
@@ -60,8 +63,8 @@ type API struct {
 	Auth  *authResource
 }
 
-func NewAPI(db *bun.DB, jwtAuth *jwtauth.JWTAuth) (*API, error) {
-	authStore := auth.NewAuthStore(jwtAuth)
+func NewAPI(db *bun.DB, rdb *redis.Client, jwtAuth *jwtauth.JWTAuth) (*API, error) {
+	authStore := auth.NewAuthStore(jwtAuth, rdb)
 	userStore := database.NewUserStore(db)
 	taskStore := database.NewTaskStore(db)
 

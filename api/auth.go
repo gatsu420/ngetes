@@ -16,6 +16,7 @@ func (rs *authResource) Router() *chi.Mux {
 	router.Group(func(router chi.Router) {
 		router.Use(rs.handlers.TokenClaimCtx)
 		router.Get("/claim", rs.handlers.GetTokenClaimHandler)
+		router.Get("/logout", rs.handlers.CreateTokenBlacklistHandler)
 	})
 
 	return router

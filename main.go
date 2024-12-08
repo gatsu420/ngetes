@@ -20,12 +20,18 @@ func main() {
 	}
 	defer db.Close()
 
+	rdb, err := database.RedisConn()
+	if err != nil {
+		log.Fatalf("failed to connect to redis: %v", err)
+	}
+	defer rdb.Close()
+
 	auth, err := auth.JWTAuth()
 	if err != nil {
 		log.Fatalf("failed to generate JWT auth: %v", err)
 	}
 
-	api, err := api.NewAPI(db, auth)
+	api, err := api.NewAPI(db, rdb, auth)
 	if err != nil {
 		log.Fatalf("failed to initialize API: %v", err)
 	}
