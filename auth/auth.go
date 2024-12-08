@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/jwtauth/v5"
 )
@@ -44,7 +45,7 @@ func (s *AuthStore) UpdateTokenBlacklistFlag(userName string, isBlacklisted bool
 	return nil
 }
 
-func (s *AuthStore) GetTokenExistence(userName string) (isExist bool, err error) {
+func (s *AuthStore) GetUserMemoryExistence(userName string) (isExist bool, err error) {
 	ctx := context.Background()
 
 	val, err := s.RDB.JSONGet(ctx, userName, "$").Result()
@@ -55,13 +56,18 @@ func (s *AuthStore) GetTokenExistence(userName string) (isExist bool, err error)
 	return val != "", nil
 }
 
-func (s *AuthStore) GetTokenBlacklistFlag(userName string) (flag string, err error) {
+func (s *AuthStore) GetTokenBlacklistFlag(userName string) (flag bool, err error) {
 	ctx := context.Background()
 
 	val, err := s.RDB.JSONGet(ctx, userName, ".isTokenBlacklisted").Result()
 	if err != nil {
-		return "", err
+		return false, err
 	}
 
-	return val, nil
+	valFlag, err := strconv.ParseBool(val)
+	if err != nil {
+		return false, err
+	}
+
+	return valFlag, nil
 }

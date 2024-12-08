@@ -44,14 +44,16 @@ func newTaskResource(operations handlers.TaskOperations, middlewares *middleware
 }
 
 type middlewareResource struct {
-	TokenClaimCtx func(http.Handler) http.Handler
-	AdminAccess   func(http.Handler) http.Handler
+	TokenClaimCtx        func(http.Handler) http.Handler
+	TokenBlacklistAccess func(http.Handler) http.Handler
+	AdminAccess          func(http.Handler) http.Handler
 }
 
 func newMiddlewareResource(authStore *auth.AuthStore, userStore *database.UserStore) *middlewareResource {
 	return &middlewareResource{
-		TokenClaimCtx: newAuthResource(authStore, userStore).handlers.TokenClaimCtx,
-		AdminAccess:   newAuthResource(authStore, userStore).handlers.AdminAccess,
+		TokenClaimCtx:        newAuthResource(authStore, userStore).handlers.TokenClaimCtx,
+		TokenBlacklistAccess: newAuthResource(authStore, userStore).handlers.TokenBlacklistAccess,
+		AdminAccess:          newAuthResource(authStore, userStore).handlers.AdminAccess,
 	}
 }
 

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -26,6 +27,29 @@ func (hd *AuthHandlers) TokenClaimCtx(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), authTokenClaimCtx, claim)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (hd *AuthHandlers) TokenBlacklistAccess(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claim := r.Context().Value(authTokenClaimCtx).(map[string]interface{})
+		userName := claim["userName"].(string)
+
+		isTokenBlacklisted, err := hd.Operations.GetTokenBlacklistFlag(userName)
+		if err != nil {
+			render.Render(w, r, errRender(err))
+			return
+		}
+
+		if isTokenBlacklisted {
+			render.Render(w, r, errUnauthorizedRender())
+			return
+		}
+
+		fmt.Println(userName)
+		fmt.Println(isTokenBlacklisted)
+
+		next.ServeHTTP(w, r)
 	})
 }
 

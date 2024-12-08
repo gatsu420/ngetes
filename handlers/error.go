@@ -31,13 +31,13 @@ func errRender(err error) render.Renderer {
 func errUnauthorizedRender() render.Renderer {
 	return &errResponse{
 		HTTPStatusCode: http.StatusUnauthorized,
-		StatusText:     "wrong name",
+		StatusText:     "your name is wrong or the token is blacklisted",
 	}
 }
 
 func errForbiddenRender() render.Renderer {
 	return &errResponse{
 		HTTPStatusCode: http.StatusForbidden,
-		StatusText:     "access forbidden",
+		StatusText:     "this endpoint is forbidden for your role",
 	}
 }

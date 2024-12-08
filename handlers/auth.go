@@ -14,8 +14,8 @@ type AuthOperations interface {
 
 	CreateUserMemory(userName string) error
 	UpdateTokenBlacklistFlag(userName string, isBlacklisted bool) error
-	GetTokenExistence(userName string) (isExist bool, err error)
-	GetTokenBlacklistFlag(userName string) (flag string, err error)
+	GetUserMemoryExistence(userName string) (isExist bool, err error)
+	GetTokenBlacklistFlag(userName string) (flag bool, err error)
 }
 
 type AuthHandlers struct {
@@ -49,9 +49,7 @@ func (hd *AuthHandlers) GetTokenHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// This token validation thing need to be put on middleware, instead of single endpoint
-	// to make sure the effect propagates to other endpoints.
-	isTokenExist, err := hd.Operations.GetTokenExistence(user.User.Name)
+	isTokenExist, err := hd.Operations.GetUserMemoryExistence(user.User.Name)
 	if err != nil {
 		render.Render(w, r, errRender(err))
 		return
@@ -61,17 +59,6 @@ func (hd *AuthHandlers) GetTokenHandler(w http.ResponseWriter, r *http.Request) 
 		err = hd.Operations.CreateUserMemory(user.User.Name)
 		if err != nil {
 			render.Render(w, r, errRender(err))
-			return
-		}
-	} else {
-		tokenBlacklistFlag, err := hd.Operations.GetTokenBlacklistFlag(user.User.Name)
-		if err != nil {
-			render.Render(w, r, errRender(err))
-			return
-		}
-
-		if tokenBlacklistFlag == "true" {
-			render.Render(w, r, errForbiddenRender())
 			return
 		}
 	}
