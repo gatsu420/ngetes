@@ -7,14 +7,24 @@ import (
 	"github.com/spf13/viper"
 )
 
-func JWTAuth() (*jwtauth.JWTAuth, error) {
+var (
+	tokenConfig struct {
+		secretKey string
+	}
+)
+
+func init() {
 	viper.SetConfigFile("./.env")
-	if err := viper.ReadInConfig(); err != nil {
-		panic(fmt.Errorf("fatal error config file: %w", err))
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("fatal error while trying to read config file: %v", err))
 	}
 
-	secretKey := viper.GetString("token_secret_key")
-	auth := jwtauth.New("HS256", []byte(secretKey), nil)
+	tokenConfig.secretKey = viper.GetString("TOKEN_SECRET_KEY")
+}
+
+func JWTAuth() (*jwtauth.JWTAuth, error) {
+	auth := jwtauth.New("HS256", []byte(tokenConfig.secretKey), nil)
 
 	return auth, nil
 }
