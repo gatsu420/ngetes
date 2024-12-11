@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -44,15 +45,16 @@ func (hd *TaskHandlers) ListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event := &models.Event{
-		TaskID: 0,
-		Name:   "list",
-	}
-	err = hd.Operations.CreateTracker(event)
-	if err != nil {
-		render.Render(w, r, errRender(err))
-		return
-	}
+	go func() {
+		event := &models.Event{
+			TaskID: 0,
+			Name:   "list",
+		}
+		err := hd.Operations.CreateTracker(event)
+		if err != nil {
+			log.Printf("failed to create tracker event: %v", err)
+		}
+	}()
 
 	render.Respond(w, r, newTaskListResponse(&task))
 }
@@ -60,15 +62,16 @@ func (hd *TaskHandlers) ListHandler(w http.ResponseWriter, r *http.Request) {
 func (hd *TaskHandlers) GetHandler(w http.ResponseWriter, r *http.Request) {
 	task := r.Context().Value(taskCtx).(*models.Task)
 
-	event := &models.Event{
-		TaskID: task.ID,
-		Name:   "get",
-	}
-	err := hd.Operations.CreateTracker(event)
-	if err != nil {
-		render.Render(w, r, errRender(err))
-		return
-	}
+	go func() {
+		event := &models.Event{
+			TaskID: task.ID,
+			Name:   "get",
+		}
+		err := hd.Operations.CreateTracker(event)
+		if err != nil {
+			log.Printf("failed to create tracker event: %v", err)
+		}
+	}()
 
 	render.Respond(w, r, newTaskResponse(task))
 }
@@ -87,15 +90,16 @@ func (hd *TaskHandlers) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event := &models.Event{
-		TaskID: taskID,
-		Name:   "create",
-	}
-	err = hd.Operations.CreateTracker(event)
-	if err != nil {
-		render.Render(w, r, errRender(err))
-		return
-	}
+	go func() {
+		event := &models.Event{
+			TaskID: taskID,
+			Name:   "create",
+		}
+		err = hd.Operations.CreateTracker(event)
+		if err != nil {
+			log.Printf("failed to create tracker event: %v", err)
+		}
+	}()
 
 	render.Respond(w, r, newTaskResponse(task.Task))
 }
@@ -119,15 +123,16 @@ func (hd *TaskHandlers) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event := &models.Event{
-		TaskID: task.ID,
-		Name:   "update",
-	}
-	err = hd.Operations.CreateTracker(event)
-	if err != nil {
-		render.Render(w, r, errRender(err))
-		return
-	}
+	go func() {
+		event := &models.Event{
+			TaskID: task.ID,
+			Name:   "update",
+		}
+		err = hd.Operations.CreateTracker(event)
+		if err != nil {
+			log.Printf("failed to create tracker event: %v", err)
+		}
+	}()
 
 	render.Respond(w, r, newTaskResponse(task))
 }
@@ -141,15 +146,16 @@ func (hd *TaskHandlers) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event := &models.Event{
-		TaskID: task.ID,
-		Name:   "delete",
-	}
-	err = hd.Operations.CreateTracker(event)
-	if err != nil {
-		render.Render(w, r, errRender(err))
-		return
-	}
+	go func() {
+		event := &models.Event{
+			TaskID: task.ID,
+			Name:   "delete",
+		}
+		err = hd.Operations.CreateTracker(event)
+		if err != nil {
+			log.Printf("failed to create tracker event: %v", err)
+		}
+	}()
 
 	render.Respond(w, r, newDeletedTaskResponse(task))
 }
