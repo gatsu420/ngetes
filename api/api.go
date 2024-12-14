@@ -6,6 +6,7 @@ import (
 	"github.com/gatsu420/ngetes/auth"
 	"github.com/gatsu420/ngetes/database"
 	"github.com/gatsu420/ngetes/handlers"
+	"github.com/gatsu420/ngetes/worker"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/redis/go-redis/v9"
 	"github.com/uptrace/bun"
@@ -57,26 +58,40 @@ func newMiddlewareResource(authStore *auth.AuthStore, userStore *database.UserSt
 	}
 }
 
+type weatherForecastResource struct {
+	workers *worker.WeatherForecastWorkers
+}
+
+func newWeatherForecastResource(operations worker.WeatherForecastOperations) *weatherForecastResource {
+	return &weatherForecastResource{
+		workers: worker.NewWeatherForecastWorkers(operations),
+	}
+}
+
 type API struct {
-	Users *userResource
-	Tasks *taskResource
-	Auth  *authResource
+	Users           *userResource
+	Tasks           *taskResource
+	Auth            *authResource
+	WeatherForecast *weatherForecastResource
 }
 
 func NewAPI(db *bun.DB, rdb *redis.Client, jwtAuth *jwtauth.JWTAuth) (*API, error) {
 	authStore := auth.NewAuthStore(jwtAuth, rdb)
 	userStore := database.NewUserStore(db)
 	taskStore := database.NewTaskStore(db)
+	weatherForecastStore := database.NewWeatherForecastStore(db)
 
 	middleware := newMiddlewareResource(authStore, userStore)
 	auth := newAuthResource(authStore, userStore)
 	users := newUserResource(userStore)
 	tasks := newTaskResource(taskStore, middleware)
+	weatherForecast := newWeatherForecastResource(weatherForecastStore)
 
 	api := &API{
-		Users: users,
-		Tasks: tasks,
-		Auth:  auth,
+		Users:           users,
+		Tasks:           tasks,
+		Auth:            auth,
+		WeatherForecast: weatherForecast,
 	}
 
 	return api, nil
