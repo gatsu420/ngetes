@@ -36,6 +36,8 @@ func main() {
 		log.Fatalf("failed to initialize API: %v", err)
 	}
 
+	go api.Uptime.Worker()
+
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
