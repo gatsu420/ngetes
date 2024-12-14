@@ -12,6 +12,7 @@ require (
 	github.com/uptrace/bun/dialect/pgdialect v1.2.5
 	github.com/uptrace/bun/driver/pgdriver v1.2.5
 	github.com/uptrace/bun/extra/bundebug v1.2.5
+	go.uber.org/zap v1.27.0
 )
 
 require (
@@ -47,8 +48,7 @@ require (
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	go.uber.org/atomic v1.9.0 // indirect
-	go.uber.org/multierr v1.9.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.28.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/sys v0.26.0 // indirect
