@@ -6,6 +6,7 @@ import (
 	"github.com/gatsu420/ngetes/auth"
 	"github.com/gatsu420/ngetes/database"
 	"github.com/gatsu420/ngetes/handlers"
+	"github.com/gatsu420/ngetes/workers"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/redis/go-redis/v9"
 	"github.com/uptrace/bun"
@@ -57,26 +58,40 @@ func newMiddlewareResource(authStore *auth.AuthStore, userStore *database.UserSt
 	}
 }
 
+type uptimeResource struct {
+	workers *workers.UptimeWorkers
+}
+
+func newUptimeResource(operations workers.UptimeOperations) *uptimeResource {
+	return &uptimeResource{
+		workers: workers.NewUptimeWorkers(operations),
+	}
+}
+
 type API struct {
-	Users *userResource
-	Tasks *taskResource
-	Auth  *authResource
+	Users  *userResource
+	Tasks  *taskResource
+	Auth   *authResource
+	Uptime *uptimeResource
 }
 
 func NewAPI(db *bun.DB, rdb *redis.Client, jwtAuth *jwtauth.JWTAuth) (*API, error) {
 	authStore := auth.NewAuthStore(jwtAuth, rdb)
 	userStore := database.NewUserStore(db)
 	taskStore := database.NewTaskStore(db)
+	uptimeStore := database.NewUptimeStore(db)
 
 	middleware := newMiddlewareResource(authStore, userStore)
 	auth := newAuthResource(authStore, userStore)
 	users := newUserResource(userStore)
 	tasks := newTaskResource(taskStore, middleware)
+	uptime := newUptimeResource(uptimeStore)
 
 	api := &API{
-		Users: users,
-		Tasks: tasks,
-		Auth:  auth,
+		Users:  users,
+		Tasks:  tasks,
+		Auth:   auth,
+		Uptime: uptime,
 	}
 
 	return api, nil
