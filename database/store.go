@@ -21,3 +21,13 @@ func NewTaskStore(db *bun.DB) *TaskStore {
 		DB: db,
 	}
 }
+
+type WeatherForecastStore struct {
+	DB *bun.DB
+}
+
+func NewWeatherForecastStore(db *bun.DB) *WeatherForecastStore {
+	return &WeatherForecastStore{
+		DB: db,
+	}
+}

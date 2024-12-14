@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -32,6 +34,28 @@ func NewTaskHandlers(operations TaskOperations) *TaskHandlers {
 	}
 }
 
+func GetWeatherForecast(url string, fc <-chan bool) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	time.Sleep(5 * time.Second)
+	fmt.Println(string(body))
+
+	if ok := <-fc; ok {
+		fmt.Println("table doesnt exist")
+	}
+
+	return nil
+}
+
 func (hd *TaskHandlers) ListHandler(w http.ResponseWriter, r *http.Request) {
 	filters, err := database.NewTaskFilter(r.URL.Query())
 	if err != nil {
@@ -45,6 +69,7 @@ func (hd *TaskHandlers) ListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	failedTrackerChan := make(chan bool)
 	go func() {
 		event := &models.Event{
 			TaskID: 0,
@@ -53,8 +78,12 @@ func (hd *TaskHandlers) ListHandler(w http.ResponseWriter, r *http.Request) {
 		err := hd.Operations.CreateTracker(event)
 		if err != nil {
 			log.Printf("failed to create tracker event: %v", err)
+			failedTrackerChan <- true
 		}
 	}()
+
+	forecast_url := "https://api.open-meteo.com/v1/forecast?latitude=-6.4&longitude=106.8186&hourly=temperature_2m"
+	go GetWeatherForecast(forecast_url, failedTrackerChan)
 
 	render.Respond(w, r, newTaskListResponse(&task))
 }

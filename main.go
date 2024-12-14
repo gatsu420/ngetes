@@ -50,6 +50,8 @@ func main() {
 		r.Mount("/tasks", api.Tasks.Router())
 	})
 
+	go api.WeatherForecast.Job()
+
 	port := ":8080"
 	fmt.Println("starting server on port", port)
 	err = http.ListenAndServe(port, router)
