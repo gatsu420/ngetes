@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: golang-app
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - dragonfly
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    env_file:
+      - .env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly
+    container_name: dragonfly-cache
+    env_file:
+      - .env
+    volumes:
+      - dragonfly-data:/data
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres-data:
+  dragonfly-data:
