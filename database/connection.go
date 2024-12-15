@@ -5,12 +5,14 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/gatsu420/ngetes/logger"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/extra/bundebug"
+	"go.uber.org/zap"
 )
 
 var (
@@ -32,7 +34,7 @@ func init() {
 	viper.SetConfigFile("./.env")
 	err := viper.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("fatal error while trying to read config file: %v", err))
+		logger.Logger.Error("failed to read config file", zap.Error(err))
 	}
 
 	dbConfig.address = viper.GetString("DB_ADDR")
@@ -58,6 +60,7 @@ func DBConn() (*bun.DB, error) {
 	db.AddQueryHook(bundebug.NewQueryHook())
 
 	if err := checkConn(db); err != nil {
+		logger.Logger.Error("failed to check DB connection", zap.Error(err))
 		return nil, err
 	}
 
@@ -73,7 +76,7 @@ func checkConn(db *bun.DB) error {
 func RedisConn() (*redis.Client, error) {
 	viper.SetConfigFile("./.env")
 	if err := viper.ReadInConfig(); err != nil {
-		panic(fmt.Errorf("fatal error config file: %w", err))
+		logger.Logger.Error("failed to read config file", zap.Error(err))
 	}
 
 	rdb := redis.NewClient(&redis.Options{
@@ -83,6 +86,7 @@ func RedisConn() (*redis.Client, error) {
 	})
 
 	if err := checkRedisConn(rdb); err != nil {
+		logger.Logger.Error("failed to check redis connection", zap.Error(err))
 		return nil, err
 	}
 

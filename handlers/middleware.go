@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -45,9 +44,6 @@ func (hd *AuthHandlers) TokenBlacklistAccess(next http.Handler) http.Handler {
 			render.Render(w, r, errUnauthorizedRender())
 			return
 		}
-
-		fmt.Println(userName)
-		fmt.Println(isTokenBlacklisted)
 
 		next.ServeHTTP(w, r)
 	})
