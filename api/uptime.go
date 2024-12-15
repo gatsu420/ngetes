@@ -3,18 +3,16 @@ package api
 import (
 	"time"
 
+	"github.com/gatsu420/ngetes/logger"
 	"go.uber.org/zap"
 )
 
 func (rs *uptimeResource) Worker() {
-	logger, _ := zap.NewProduction()
-	defer logger.Sync()
-
 	for {
 		err := rs.workers.CreateUptimeWorker()
-		logger.Info("uptime recorded")
+		logger.Logger.Info("uptime recorded")
 		if err != nil {
-			logger.Error("uptime not recorded")
+			logger.Logger.Error("uptime not recorded", zap.Error(err))
 		}
 
 		time.Sleep(15 * time.Second)
