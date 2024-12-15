@@ -1,10 +1,10 @@
 package auth
 
 import (
-	"fmt"
-
+	"github.com/gatsu420/ngetes/logger"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 var (
@@ -17,7 +17,7 @@ func init() {
 	viper.SetConfigFile("./.env")
 	err := viper.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("fatal error while trying to read config file: %v", err))
+		logger.Logger.Error("failed to read config file", zap.Error(err))
 	}
 
 	tokenConfig.secretKey = viper.GetString("TOKEN_SECRET_KEY")
