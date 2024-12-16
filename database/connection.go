@@ -37,10 +37,10 @@ func init() {
 		logger.Logger.Error("failed to read config file", zap.Error(err))
 	}
 
-	dbConfig.address = viper.GetString("DB_ADDR")
-	dbConfig.database = viper.GetString("DB_DATABASE")
-	dbConfig.user = viper.GetString("DB_USER")
-	dbConfig.password = viper.GetString("DB_PASSWORD")
+	dbConfig.address = viper.GetString("POSTGRES_ADDR")
+	dbConfig.database = viper.GetString("POSTGRES_DB")
+	dbConfig.user = viper.GetString("POSTGRES_USER")
+	dbConfig.password = viper.GetString("POSTGRES_PASSWORD")
 
 	redisConfig.address = viper.GetString("REDIS_ADDR")
 	redisConfig.database = viper.GetInt("REDIS_DATABASE")
