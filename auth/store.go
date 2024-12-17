@@ -7,12 +7,12 @@ import (
 
 type AuthStore struct {
 	jwtAuth *jwtauth.JWTAuth
-	RDB     *redis.Client
+	cache   *redis.Client
 }
 
-func NewAuthStore(jwtauth *jwtauth.JWTAuth, rdb *redis.Client) *AuthStore {
+func NewAuthStore(jwtauth *jwtauth.JWTAuth, cache *redis.Client) *AuthStore {
 	return &AuthStore{
 		jwtAuth: jwtauth,
-		RDB:     rdb,
+		cache:   cache,
 	}
 }

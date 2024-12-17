@@ -24,7 +24,7 @@ var (
 		password string
 	}
 
-	redisConfig struct {
+	cacheConfig struct {
 		host     string
 		port     int
 		database int
@@ -46,10 +46,10 @@ func init() {
 	dbConfig.user = viper.GetString("POSTGRES_USER")
 	dbConfig.password = viper.GetString("POSTGRES_PASSWORD")
 
-	redisConfig.host = viper.GetString("REDIS_HOST")
-	redisConfig.port = viper.GetInt("REDIS_PORT")
-	redisConfig.database = viper.GetInt("REDIS_DATABASE")
-	redisConfig.password = viper.GetString("REDIS_PASSWORD")
+	cacheConfig.host = viper.GetString("REDIS_HOST")
+	cacheConfig.port = viper.GetInt("REDIS_PORT")
+	cacheConfig.database = viper.GetInt("REDIS_DB")
+	cacheConfig.password = viper.GetString("REDIS_PASSWORD")
 }
 
 func DBConn() (*bun.DB, error) {
@@ -85,18 +85,18 @@ func RedisConn() (*redis.Client, error) {
 		logger.Logger.Error("failed to read config file", zap.Error(err))
 	}
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%v:%v", redisConfig.host, redisConfig.port),
-		Password: redisConfig.password,
-		DB:       redisConfig.database,
+	cache := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%v:%v", cacheConfig.host, cacheConfig.port),
+		Password: cacheConfig.password,
+		DB:       cacheConfig.database,
 	})
 
-	if err := checkRedisConn(rdb); err != nil {
+	if err := checkRedisConn(cache); err != nil {
 		logger.Logger.Error("failed to check redis connection", zap.Error(err))
 		return nil, err
 	}
 
-	return rdb, nil
+	return cache, nil
 }
 
 func checkRedisConn(rdb *redis.Client) error {

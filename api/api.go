@@ -75,8 +75,8 @@ type API struct {
 	Uptime *uptimeResource
 }
 
-func NewAPI(db *bun.DB, rdb *redis.Client, jwtAuth *jwtauth.JWTAuth) (*API, error) {
-	authStore := auth.NewAuthStore(jwtAuth, rdb)
+func NewAPI(db *bun.DB, cache *redis.Client, jwtAuth *jwtauth.JWTAuth) (*API, error) {
+	authStore := auth.NewAuthStore(jwtAuth, cache)
 	userStore := database.NewUserStore(db)
 	taskStore := database.NewTaskStore(db)
 	uptimeStore := database.NewUptimeStore(db)
