@@ -38,6 +38,7 @@ func init() {
 	if err != nil {
 		logger.Logger.Error("failed to read config file", zap.Error(err))
 	}
+	viper.AutomaticEnv()
 
 	dbConfig.host = viper.GetString("POSTGRES_HOST")
 	dbConfig.port = viper.GetInt("POSTGRES_PORT")
