@@ -17,14 +17,16 @@ import (
 
 var (
 	dbConfig struct {
-		address  string
+		host     string
+		port     int
 		database string
 		user     string
 		password string
 	}
 
 	redisConfig struct {
-		address  string
+		host     string
+		port     int
 		database int
 		password string
 	}
@@ -37,21 +39,24 @@ func init() {
 		logger.Logger.Error("failed to read config file", zap.Error(err))
 	}
 
-	dbConfig.address = viper.GetString("POSTGRES_ADDR")
+	dbConfig.host = viper.GetString("POSTGRES_HOST")
+	dbConfig.port = viper.GetInt("POSTGRES_PORT")
 	dbConfig.database = viper.GetString("POSTGRES_DB")
 	dbConfig.user = viper.GetString("POSTGRES_USER")
 	dbConfig.password = viper.GetString("POSTGRES_PASSWORD")
 
-	redisConfig.address = viper.GetString("REDIS_ADDR")
+	redisConfig.host = viper.GetString("REDIS_HOST")
+	redisConfig.port = viper.GetInt("REDIS_PORT")
 	redisConfig.database = viper.GetInt("REDIS_DATABASE")
 	redisConfig.password = viper.GetString("REDIS_PASSWORD")
 }
 
 func DBConn() (*bun.DB, error) {
-	dsn := fmt.Sprintf(`postgres://%v:%v@%v/%v?sslmode=disable`,
+	dsn := fmt.Sprintf(`postgres://%v:%v@%v:%v/%v?sslmode=disable`,
 		dbConfig.user,
 		dbConfig.password,
-		dbConfig.address,
+		dbConfig.host,
+		dbConfig.port,
 		dbConfig.database,
 	)
 
@@ -80,7 +85,7 @@ func RedisConn() (*redis.Client, error) {
 	}
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     redisConfig.address,
+		Addr:     fmt.Sprintf("%v:%v", redisConfig.host, redisConfig.port),
 		Password: redisConfig.password,
 		DB:       redisConfig.database,
 	})
