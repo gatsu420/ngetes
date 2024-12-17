@@ -26,7 +26,7 @@ func (s *AuthStore) GetJWTClaim(r *http.Request) (map[string]interface{}, error)
 func (s *AuthStore) CreateUserMemory(userName string) error {
 	ctx := context.Background()
 
-	_, err := s.RDB.JSONSet(ctx, userName, "$", `{"isTokenBlacklisted": false}`).Result()
+	_, err := s.cache.JSONSet(ctx, userName, "$", `{"isTokenBlacklisted": false}`).Result()
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func (s *AuthStore) CreateUserMemory(userName string) error {
 func (s *AuthStore) UpdateTokenBlacklistFlag(userName string, isBlacklisted bool) error {
 	ctx := context.Background()
 
-	_, err := s.RDB.JSONSet(ctx, userName, ".isTokenBlacklisted", isBlacklisted).Result()
+	_, err := s.cache.JSONSet(ctx, userName, ".isTokenBlacklisted", isBlacklisted).Result()
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func (s *AuthStore) UpdateTokenBlacklistFlag(userName string, isBlacklisted bool
 func (s *AuthStore) GetUserMemoryExistence(userName string) (isExist bool, err error) {
 	ctx := context.Background()
 
-	val, err := s.RDB.JSONGet(ctx, userName, "$").Result()
+	val, err := s.cache.JSONGet(ctx, userName, "$").Result()
 	if err != nil {
 		return false, err
 	}
@@ -59,7 +59,7 @@ func (s *AuthStore) GetUserMemoryExistence(userName string) (isExist bool, err e
 func (s *AuthStore) GetTokenBlacklistFlag(userName string) (flag bool, err error) {
 	ctx := context.Background()
 
-	val, err := s.RDB.JSONGet(ctx, userName, ".isTokenBlacklisted").Result()
+	val, err := s.cache.JSONGet(ctx, userName, ".isTokenBlacklisted").Result()
 	if err != nil {
 		return false, err
 	}

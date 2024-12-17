@@ -17,14 +17,16 @@ import (
 
 var (
 	dbConfig struct {
-		address  string
+		host     string
+		port     int
 		database string
 		user     string
 		password string
 	}
 
-	redisConfig struct {
-		address  string
+	cacheConfig struct {
+		host     string
+		port     int
 		database int
 		password string
 	}
@@ -36,22 +38,26 @@ func init() {
 	if err != nil {
 		logger.Logger.Error("failed to read config file", zap.Error(err))
 	}
+	viper.AutomaticEnv()
 
-	dbConfig.address = viper.GetString("POSTGRES_ADDR")
+	dbConfig.host = viper.GetString("POSTGRES_HOST")
+	dbConfig.port = viper.GetInt("POSTGRES_PORT")
 	dbConfig.database = viper.GetString("POSTGRES_DB")
 	dbConfig.user = viper.GetString("POSTGRES_USER")
 	dbConfig.password = viper.GetString("POSTGRES_PASSWORD")
 
-	redisConfig.address = viper.GetString("REDIS_ADDR")
-	redisConfig.database = viper.GetInt("REDIS_DATABASE")
-	redisConfig.password = viper.GetString("REDIS_PASSWORD")
+	cacheConfig.host = viper.GetString("REDIS_HOST")
+	cacheConfig.port = viper.GetInt("REDIS_PORT")
+	cacheConfig.database = viper.GetInt("REDIS_DB")
+	cacheConfig.password = viper.GetString("REDIS_PASSWORD")
 }
 
 func DBConn() (*bun.DB, error) {
-	dsn := fmt.Sprintf(`postgres://%v:%v@%v/%v?sslmode=disable`,
+	dsn := fmt.Sprintf(`postgres://%v:%v@%v:%v/%v?sslmode=disable`,
 		dbConfig.user,
 		dbConfig.password,
-		dbConfig.address,
+		dbConfig.host,
+		dbConfig.port,
 		dbConfig.database,
 	)
 
@@ -79,18 +85,18 @@ func RedisConn() (*redis.Client, error) {
 		logger.Logger.Error("failed to read config file", zap.Error(err))
 	}
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     redisConfig.address,
-		Password: redisConfig.password,
-		DB:       redisConfig.database,
+	cache := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%v:%v", cacheConfig.host, cacheConfig.port),
+		Password: cacheConfig.password,
+		DB:       cacheConfig.database,
 	})
 
-	if err := checkRedisConn(rdb); err != nil {
+	if err := checkRedisConn(cache); err != nil {
 		logger.Logger.Error("failed to check redis connection", zap.Error(err))
 		return nil, err
 	}
 
-	return rdb, nil
+	return cache, nil
 }
 
 func checkRedisConn(rdb *redis.Client) error {
