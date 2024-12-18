@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/gatsu420/ngetes/config"
 	"github.com/gatsu420/ngetes/logger"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
@@ -15,50 +16,13 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	dbConfig struct {
-		host     string
-		port     int
-		database string
-		user     string
-		password string
-	}
-
-	cacheConfig struct {
-		host     string
-		port     int
-		database int
-		password string
-	}
-)
-
-func init() {
-	viper.SetConfigFile("./.env")
-	err := viper.ReadInConfig()
-	if err != nil {
-		logger.Logger.Error("failed to read config file", zap.Error(err))
-	}
-	viper.AutomaticEnv()
-
-	dbConfig.host = viper.GetString("POSTGRES_HOST")
-	dbConfig.port = viper.GetInt("POSTGRES_PORT")
-	dbConfig.database = viper.GetString("POSTGRES_DB")
-	dbConfig.user = viper.GetString("POSTGRES_USER")
-	dbConfig.password = viper.GetString("POSTGRES_PASSWORD")
-
-	cacheConfig.host = viper.GetString("REDIS_HOST")
-	cacheConfig.port = viper.GetInt("REDIS_PORT")
-	cacheConfig.database = viper.GetInt("REDIS_DB")
-	cacheConfig.password = viper.GetString("REDIS_PASSWORD")
-}
-
-func DBConn() (*bun.DB, error) {
+func DBConn(config *config.Config) (*bun.DB, error) {
 	dsn := fmt.Sprintf(`postgres://%v:%v@%v:%v/%v?sslmode=disable`,
-		dbConfig.user,
-		dbConfig.password,
-		dbConfig.host,
-		dbConfig.port,
-		dbConfig.database,
+		config.PostgresUser,
+		config.PostgresPassword,
+		config.PostgresHost,
+		config.PostgresPort,
+		config.PostgresDB,
 	)
 
 	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
@@ -79,16 +43,16 @@ func checkConn(db *bun.DB) error {
 	return db.NewSelect().ColumnExpr("1").Scan(context.Background(), &n)
 }
 
-func RedisConn() (*redis.Client, error) {
+func RedisConn(config *config.Config) (*redis.Client, error) {
 	viper.SetConfigFile("./.env")
 	if err := viper.ReadInConfig(); err != nil {
 		logger.Logger.Error("failed to read config file", zap.Error(err))
 	}
 
 	cache := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%v:%v", cacheConfig.host, cacheConfig.port),
-		Password: cacheConfig.password,
-		DB:       cacheConfig.database,
+		Addr:     fmt.Sprintf("%v:%v", config.RedisHost, config.RedisPort),
+		Password: config.RedisPassword,
+		DB:       config.RedisDB,
 	})
 
 	if err := checkRedisConn(cache); err != nil {

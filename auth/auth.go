@@ -5,11 +5,17 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gatsu420/ngetes/config"
 	"github.com/go-chi/jwtauth/v5"
 )
 
 func (s *AuthStore) CreateJWTAuth() (*jwtauth.JWTAuth, error) {
-	auth, err := JWTAuth()
+	config, err := config.LoadConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	auth, err := JWTAuth(config)
 
 	return auth, err
 }
