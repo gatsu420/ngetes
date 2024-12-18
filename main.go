@@ -5,6 +5,7 @@ import (
 
 	"github.com/gatsu420/ngetes/api"
 	"github.com/gatsu420/ngetes/auth"
+	"github.com/gatsu420/ngetes/config"
 	"github.com/gatsu420/ngetes/database"
 	"github.com/gatsu420/ngetes/logger"
 	"github.com/go-chi/chi/v5"
@@ -20,19 +21,24 @@ func main() {
 	}
 	defer logger.Logger.Sync()
 
-	db, err := database.DBConn()
+	config, err := config.LoadConfig()
+	if err != nil {
+		logger.Logger.Fatal("failed to read config file", zap.Error(err))
+	}
+
+	db, err := database.DBConn(config)
 	if err != nil {
 		logger.Logger.Fatal("failed to connect to database", zap.Error(err))
 	}
 	defer db.Close()
 
-	cache, err := database.RedisConn()
+	cache, err := database.RedisConn(config)
 	if err != nil {
 		logger.Logger.Fatal("failed to connect to redis", zap.Error(err))
 	}
 	defer cache.Close()
 
-	auth, err := auth.JWTAuth()
+	auth, err := auth.JWTAuth(config)
 	if err != nil {
 		logger.Logger.Fatal("failed to generate JWT auth", zap.Error(err))
 	}
