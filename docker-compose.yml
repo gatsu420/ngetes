@@ -1,5 +1,5 @@
 services:
-  app:
+  ngetes:
     build:
       context: .
       dockerfile: Dockerfile
@@ -7,18 +7,18 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - backend
+      - ngetes-network
     env_file:
       - .env
     environment:
       - POSTGRES_HOST=postgres
-      - REDIS_HOST=dragonfly
+      - REDIS_HOST=redis
     depends_on:
       postgres:
         condition: service_healthy
       migrate-up:
         condition: service_completed_successfully
-      dragonfly:
+      redis:
         condition: service_healthy
     restart: on-failure:5
 
@@ -30,7 +30,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - backend
+      - ngetes-network
     env_file:
       - .env
     healthcheck:
@@ -45,7 +45,7 @@ services:
     volumes:
       - ./migrations:/migrations
     networks:
-      - backend
+      - ngetes-network
     env_file:
       - .env
     command: ["-path", "/migrations", "-database", "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable", "down", "-all"]
@@ -59,7 +59,7 @@ services:
     volumes:
       - ./migrations:/migrations
     networks:
-      - backend
+      - ngetes-network
     env_file:
       - .env
     command: ["-path", "/migrations", "-database", "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable", "up"]
@@ -67,15 +67,15 @@ services:
       migrate-down:
         condition: service_completed_successfully
 
-  dragonfly:
-    image: docker.dragonflydb.io/dragonflydb/dragonfly
-    container_name: dragonfly-cache
+  redis:
+    image: redis/redis-stack:7.4.0-v1
+    container_name: redis-cache
     volumes:
-      - dragonfly-data:/data
+      - redis-data:/data
     ports:
       - "6379:6379"
     networks:
-      - backend
+      - ngetes-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -84,8 +84,8 @@ services:
 
 volumes:
   postgres-data:
-  dragonfly-data:
+  redis-data:
 
 networks:
-  backend:
+  ngetes-network:
     driver: bridge
