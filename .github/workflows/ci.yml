@@ -38,4 +38,4 @@ jobs:
         run: go build
       
       - name: test
-        run: go test
+        run: go test -v ./...
