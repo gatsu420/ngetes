@@ -1,13 +1,14 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/gatsu420/ngetes/database"
+	"github.com/gatsu420/ngetes/logger"
 	"github.com/gatsu420/ngetes/models"
 	"github.com/go-chi/render"
+	"go.uber.org/zap"
 )
 
 type TaskOperations interface {
@@ -52,7 +53,7 @@ func (hd *TaskHandlers) ListHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err := hd.Operations.CreateTracker(event)
 		if err != nil {
-			log.Printf("failed to create tracker event: %v", err)
+			logger.Logger.Error("failed to create tracker event", zap.Error(err))
 		}
 	}()
 
@@ -69,7 +70,7 @@ func (hd *TaskHandlers) GetHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err := hd.Operations.CreateTracker(event)
 		if err != nil {
-			log.Printf("failed to create tracker event: %v", err)
+			logger.Logger.Error("failed to create tracker event", zap.Error(err))
 		}
 	}()
 
@@ -97,7 +98,7 @@ func (hd *TaskHandlers) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err = hd.Operations.CreateTracker(event)
 		if err != nil {
-			log.Printf("failed to create tracker event: %v", err)
+			logger.Logger.Error("failed to create tracker event", zap.Error(err))
 		}
 	}()
 
@@ -130,7 +131,7 @@ func (hd *TaskHandlers) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err = hd.Operations.CreateTracker(event)
 		if err != nil {
-			log.Printf("failed to create tracker event: %v", err)
+			logger.Logger.Error("failed to create tracker event", zap.Error(err))
 		}
 	}()
 
@@ -153,7 +154,7 @@ func (hd *TaskHandlers) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err = hd.Operations.CreateTracker(event)
 		if err != nil {
-			log.Printf("failed to create tracker event: %v", err)
+			logger.Logger.Error("failed to create tracker event", zap.Error(err))
 		}
 	}()
 
