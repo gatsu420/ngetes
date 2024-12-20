@@ -22,6 +22,16 @@ func NewTaskStore(db *bun.DB) *TaskStore {
 	}
 }
 
+type BulkTasksStore struct {
+	DB *bun.DB
+}
+
+func NewBulkTasksStore(db *bun.DB) *BulkTasksStore {
+	return &BulkTasksStore{
+		DB: db,
+	}
+}
+
 type UptimeStore struct {
 	DB *bun.DB
 }
