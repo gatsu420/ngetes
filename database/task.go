@@ -115,29 +115,6 @@ func (s *TaskStore) Create(t *models.Task) (taskID int, err error) {
 	return t.ID, nil
 }
 
-func (s *TaskStore) CreateBulk(t []models.Task) (tasks []models.Task, err error) {
-	ctx := context.Background()
-	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = tx.NewInsert().
-		Model(&t).
-		Exec(ctx)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	for _, task := range t {
-		tasks = append(tasks, task)
-	}
-
-	tx.Commit()
-	return tasks, nil
-}
-
 func (s *TaskStore) Update(t *models.Task) error {
 	ctx := context.Background()
 	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{})

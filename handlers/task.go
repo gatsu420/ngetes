@@ -8,7 +8,6 @@ import (
 	"github.com/gatsu420/ngetes/logger"
 	"github.com/gatsu420/ngetes/models"
 	"github.com/go-chi/render"
-	"github.com/xuri/excelize/v2"
 	"go.uber.org/zap"
 )
 
@@ -16,7 +15,6 @@ type TaskOperations interface {
 	List(*database.TaskFilter) ([]models.Task, error)
 	Get(id int) (*models.Task, error)
 	Create(*models.Task) (taskID int, err error)
-	CreateBulk(t []models.Task) (tasks []models.Task, err error)
 	Update(*models.Task) error
 	Delete(*models.Task) error
 
@@ -105,42 +103,6 @@ func (hd *TaskHandlers) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	render.Respond(w, r, newTaskResponse(task.Task))
-}
-
-func (hd *TaskHandlers) CreateBulkHandler(w http.ResponseWriter, r *http.Request) {
-	f, err := excelize.OpenFile("Book1.xlsx")
-	if err != nil {
-		render.Render(w, r, errRender(err))
-		return
-	}
-	defer f.Close()
-
-	rows, err := f.GetRows("Sheet1")
-	if err != nil {
-		render.Render(w, r, errRender(err))
-		return
-	}
-
-	tasks := []models.Task{}
-	for i, row := range rows {
-		if i == 0 {
-			continue
-		}
-
-		task := models.Task{
-			Name:   row[0],
-			Status: row[1],
-		}
-		tasks = append(tasks, task)
-	}
-
-	t, err := hd.Operations.CreateBulk(tasks)
-	if err != nil {
-		render.Render(w, r, errRender(err))
-		return
-	}
-
-	render.Respond(w, r, newTaskListResponse(&t))
 }
 
 func (hd *TaskHandlers) UpdateHandler(w http.ResponseWriter, r *http.Request) {

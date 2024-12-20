@@ -3,6 +3,3 @@
 
 # test coverage
 coverage.out
-
-# bulk tasks creation
-*.xlsx
