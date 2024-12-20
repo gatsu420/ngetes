@@ -3,3 +3,6 @@
 
 # test coverage
 coverage.out
+
+# bulk tasks operations
+*.xlsx
