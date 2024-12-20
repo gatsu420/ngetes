@@ -9,6 +9,7 @@ func (rs *taskResource) Router() *chi.Mux {
 	router.Use(rs.middlewares.TokenBlacklistAccess)
 	router.Get("/", rs.handlers.ListHandler)
 	router.Post("/", rs.handlers.CreateHandler)
+	router.Post("/bulk", rs.handlers.CreateBulkHandler)
 	router.Route("/{taskID}", func(router chi.Router) {
 		router.Use(rs.handlers.TaskCtx)
 		router.Get("/", rs.handlers.GetHandler)
