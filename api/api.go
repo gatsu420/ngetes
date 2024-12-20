@@ -44,6 +44,18 @@ func newTaskResource(operations handlers.TaskOperations, middlewares *middleware
 	}
 }
 
+type bulkTasksResource struct {
+	handlers    *handlers.BulkTasksHandlers
+	middlewares *middlewareResource
+}
+
+func newBulkTasksResource(operations handlers.BulkTasksOperations, middlewares *middlewareResource) *bulkTasksResource {
+	return &bulkTasksResource{
+		handlers:    handlers.NewBulkTasksHandlers(operations),
+		middlewares: middlewares,
+	}
+}
+
 type middlewareResource struct {
 	TokenClaimCtx        func(http.Handler) http.Handler
 	TokenBlacklistAccess func(http.Handler) http.Handler
@@ -69,29 +81,33 @@ func newUptimeResource(operations workers.UptimeOperations) *uptimeResource {
 }
 
 type API struct {
-	Users  *userResource
-	Tasks  *taskResource
-	Auth   *authResource
-	Uptime *uptimeResource
+	Users     *userResource
+	Tasks     *taskResource
+	BulkTasks *bulkTasksResource
+	Auth      *authResource
+	Uptime    *uptimeResource
 }
 
 func NewAPI(db *bun.DB, cache *redis.Client, jwtAuth *jwtauth.JWTAuth) (*API, error) {
 	authStore := auth.NewAuthStore(jwtAuth, cache)
 	userStore := database.NewUserStore(db)
 	taskStore := database.NewTaskStore(db)
+	bulkTasksStore := database.NewBulkTasksStore(db)
 	uptimeStore := database.NewUptimeStore(db)
 
 	middleware := newMiddlewareResource(authStore, userStore)
 	auth := newAuthResource(authStore, userStore)
 	users := newUserResource(userStore)
 	tasks := newTaskResource(taskStore, middleware)
+	bulkTasks := newBulkTasksResource(bulkTasksStore, middleware)
 	uptime := newUptimeResource(uptimeStore)
 
 	api := &API{
-		Users:  users,
-		Tasks:  tasks,
-		Auth:   auth,
-		Uptime: uptime,
+		Users:     users,
+		Tasks:     tasks,
+		BulkTasks: bulkTasks,
+		Auth:      auth,
+		Uptime:    uptime,
 	}
 
 	return api, nil
