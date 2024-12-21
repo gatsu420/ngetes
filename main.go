@@ -62,6 +62,7 @@ func main() {
 		r.Use(jwtauth.Authenticator(auth))
 		r.Mount("/auth", api.Auth.Router())
 		r.Mount("/tasks", api.Tasks.Router())
+		r.Mount("/bulktasks", api.BulkTasks.Router())
 	})
 
 	port := ":8080"

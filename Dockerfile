@@ -12,5 +12,6 @@ WORKDIR /app
 COPY --from=builder /src/main .
 COPY .env .
 COPY ./migrations /migrations
+COPY Book1.xlsx .
 EXPOSE 8080
 CMD ["./main"]
