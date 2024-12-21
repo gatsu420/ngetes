@@ -6,13 +6,13 @@ import (
 )
 
 type AuthStore struct {
-	jwtAuth *jwtauth.JWTAuth
-	cache   *redis.Client
+	JWTAuth *jwtauth.JWTAuth
+	Cache   *redis.Client
 }
 
 func NewAuthStore(jwtauth *jwtauth.JWTAuth, cache *redis.Client) *AuthStore {
 	return &AuthStore{
-		jwtAuth: jwtauth,
-		cache:   cache,
+		JWTAuth: jwtauth,
+		Cache:   cache,
 	}
 }

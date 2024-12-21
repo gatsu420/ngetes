@@ -25,6 +25,13 @@ func TestJWTAuth(t *testing.T) {
 			expectedAuthType:  reflect.TypeOf(&jwtauth.JWTAuth{}),
 			expectedErrIsNil:  true,
 		},
+		{
+			testName:          "empty config",
+			config:            &config.Config{},
+			expectedAuthIsNil: false,
+			expectedAuthType:  reflect.TypeOf(&jwtauth.JWTAuth{}),
+			expectedErrIsNil:  true,
+		},
 	}
 
 	for _, test := range tests {
