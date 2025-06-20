@@ -3,7 +3,7 @@ module github.com/gatsu420/ngetes
 go 1.22.4
 
 require (
-	github.com/go-chi/chi/v5 v5.1.0
+	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/jwtauth/v5 v5.3.1
 	github.com/go-chi/render v1.0.3
 	github.com/redis/go-redis/v9 v9.7.0
